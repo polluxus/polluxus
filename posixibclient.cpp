@@ -54,6 +54,7 @@ bool PosixIBClient::connect(const char *host, int port, int clientId)
     if(bRes)
     {
         qDebug() << "PosixIBClient: connected to server";
+
     }
     else
     {
@@ -107,6 +108,7 @@ void PosixIBClient::onConnect(QString host, int port,  int clientId)
     {
         qDebug() << "Connected------------------------------.";
         emit AdapterConnected();
+        reqCurrentTime();
         //onProcessMessages();
     }
     else
@@ -155,8 +157,9 @@ void PosixIBClient::processMessages()
 
     if( sleepDeadline > 0) {
         // initialize timeout with m_sleepDeadline - now
-        qDebug() << "PosixClient::processMessages";
+
         tval.tv_sec = sleepDeadline - now;
+        qDebug() << "PosixClient::processMessages - tv_sec:" << tval.tv_sec;
     }
 
     if( pClient->fd() >= 0 )
@@ -279,7 +282,7 @@ void PosixIBClient::onReqMktData(QString contractId, QString exchange)
 
 }
 
-void PosixIBClient::onReqMktDepth(QString contractId)
+void PosixIBClient::onReqMktDepth(QString contractId, QString exchange)
 {
     //check if it is in conIdDepthMap
 
@@ -290,15 +293,16 @@ void PosixIBClient::onReqMktDepth(QString contractId)
 
         Contract contract;
         contract.conId = contractId.toLong();
+        contract.exchange = exchange.toStdString();
 //        contract.symbol = "ES";
 //        contract.secType = "FUT";
 //        contract.exchange = "GLOBEX";
-//        contract.expiry = "201509";
+//        contract.expiry = "201512";
 //        contract.currency = "USD";
 
         qDebug() << "I am going to reqMktDepth";
 
-        pClient->reqMktDepth(reqId, contract, 1, TagValueListSPtr());
+        pClient->reqMktDepth(reqId, contract, 5, TagValueListSPtr());
     }
 }
 
@@ -331,7 +335,8 @@ void PosixIBClient::reqCurrentTime()
 //    qDebug() << "PosixIBClient: requesting current time";
 //    sleepDeadline = time( NULL) + PING_DEADLINE;
 //    state = ST_PING_ACK;
-//    pClient->reqCurrentTime();
+      qDebug() << "Start reqTime:" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
+      pClient->reqCurrentTime();
 
 }
 
@@ -349,7 +354,7 @@ void PosixIBClient::placeOrder()
     order.action = "BUY";
     order.totalQuantity = 1;
 	order.orderType = "LMT";
-    order.lmtPrice = 2045.00;
+    order.lmtPrice = 1945.00;
 
     long nextOrderId = getNextValidUId();
     qDebug() << "Placing order using ID:" << nextOrderId;
@@ -399,23 +404,11 @@ void PosixIBClient::nextValidId( OrderId orderId)
     //nextOrderId = orderId;
 }
 
-void PosixIBClient::currentTime( long time)
+void PosixIBClient::currentTime(long time)
 {
-//    if (state == ST_PING_ACK) {
-//        time_t t = ( time_t)time;
-
-//        QDateTime dt;
-//        dt.setTime_t(t);
-
-//        qDebug() << "IB currentTime:" << dt.toString("hh:mm:ss:zzz");
-
-//        time_t now = ::time(NULL);
-//        sleepDeadline = now + SLEEP_BETWEEN_PINGS;
-
-//        state = ST_IDLE;
-//    }
-
-
+    qDebug() << "End reqTime:" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
+    timeDiffMS = QDateTime::currentMSecsSinceEpoch() - time * 1000;
+    qDebug() << "timeDiffMS:" << timeDiffMS;
 }
 
 void PosixIBClient::error(const int id, const int errorCode, const IBString errorString)
@@ -441,9 +434,18 @@ void PosixIBClient::tickOptionComputation( TickerId tickerId, TickType tickType,
 void PosixIBClient::tickGeneric(TickerId tickerId, TickType tickType, double value) {}
 void PosixIBClient::tickString(TickerId tickerId, TickType tickType, const IBString& value)
 {
-    //
+    //use tickType = 45 to update timeDiffMS
+    if(tickType == 45)
+    {
+        qDebug() << "tickString():" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                 <<" >>tickerId:" << tickerId
+                 <<", TickType:" << tickType
+                 << ", Value:" << QString::fromStdString(value);
+
+    }
     //Handle RTVolume
-    if(tickType == 48)
+    QString conId = conIdTickMap.key(tickerId, "");
+    if(tickType == 48 && conId != "")
     {
 
 
@@ -451,13 +453,16 @@ void PosixIBClient::tickString(TickerId tickerId, TickType tickType, const IBStr
         QStringList strList = str.split(";");
         Tick tick;
 
-        tick.contractId = conIdTickMap.key(tickerId);
+        tick.contractId = conId;
         tick.timeStamp = QDateTime::fromMSecsSinceEpoch(strList[2].toLongLong());
         tick.price = strList[0].toDouble();
         tick.size = strList[1].toLong();
 
         emit TickUpdating(tick);
-        qDebug() << "tickString():" << tick.timeStamp.toString("hh:mm:ss.zzz")<<" >>tickerId:" << tickerId <<", TickType:" << tickType << ", Value:" << str;
+        qDebug() << "tickString():" << tick.timeStamp.toString("hh:mm:ss.zzz")
+                 <<" >>contractId:" << conId
+                 <<", TickType:" << tickType
+                 << ", Value:" << str;
     }
 
 }
@@ -499,23 +504,38 @@ void PosixIBClient::execDetailsEnd( int reqId) {}
 void PosixIBClient::updateMktDepth(TickerId id, int position, int operation, int side,
                                       double price, int size)
 {
-    Depth depth;
-    depth.contractId = conIdDepthMap.key(id);
 
-    depth.side = side;
-    depth.size = size;
-    depth.price = price;
-    depth.position = position;
-    depth.operation = operation;
-
-    if(side == 0) //ask
+    QString conId = conIdDepthMap.key(id, "");
+    if(conId != "")
     {
 
-        emit BAskUpdating(depth);
-    }
-    else
-    {
-        emit BBidUpdating(depth);
+        Depth depth;
+        depth.contractId = conId;
+        depth.timeStamp = QDateTime::currentDateTime().addMSecs(timeDiffMS);
+
+        depth.side = side;
+        depth.size = size;
+        depth.price = price;
+        depth.position = position;
+        depth.operation = operation;
+
+        if(side == 0) //ask
+        {
+
+            emit BAskUpdating(depth);
+        }
+        else
+        {
+            emit BBidUpdating(depth);
+        }
+
+        qDebug() << "updateMktDepth():" << depth.timeStamp.toString("hh:mm:ss.zzz")
+                 <<" >>contractId:" << conId
+                 <<", side:" << side
+                 << ", size:" << size
+                 << ", price:" << price
+                 << ", position:" << position
+                 << ", operation:" << operation;
     }
 
 }

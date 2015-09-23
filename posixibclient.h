@@ -44,13 +44,14 @@ public:
 
     long getNextValidUId();
     long nextValidUId;
+    qint64 timeDiffMS;
 
 public slots:
     void onConnect(QString host, int port,  int clientID);
     void onDisconnect();
     void onReqCurrentTime();
     void onReqMktData(QString contractId, QString exchange);
-    void onReqMktDepth(QString contractId);
+    void onReqMktDepth(QString contractId, QString exchange);
     void onCancelMktData(QString contractId);
     void onCancelMktDepth(QString contractId);
 
