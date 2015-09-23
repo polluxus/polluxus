@@ -188,14 +188,14 @@ void PolluxusMain::onAdapterConnect()
 {
     if(btnConnect->isChecked())
     {
-        qDebug() << "MainWindow:Hi I am connecting ib.------"  << QThread::currentThreadId();
+        qDebug() << "MainWindow:Hi I am connecting IB.------"  << QThread::currentThreadId();
 
-        const char *host = editHost->text().toStdString().c_str();
+        QString host = editHost->text();
         int port = editPort->text().toInt();
         int clientId = editClientId->text().toInt();
 
         QMetaObject::invokeMethod(pIBAdapter, "onConnect", Qt::QueuedConnection,
-                                  Q_ARG(const char*, host),
+                                  Q_ARG(QString, host),
                                   Q_ARG(int, port),
                                   Q_ARG(int, clientId));
 

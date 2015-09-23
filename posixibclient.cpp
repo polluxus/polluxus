@@ -75,12 +75,13 @@ bool PosixIBClient::isConnected() const
 }
 
 
-void PosixIBClient::onConnect(const char *host, int port,  int clientId)
+void PosixIBClient::onConnect(QString host, int port,  int clientId)
 {
 
     qDebug() << "PosixIBClient: onConnect() from " << QThread::currentThreadId();
 
-    this->host = host;
+
+    this->host = host.toUtf8().constData();
     this->port = port;
     this->clientId = clientId;
 
@@ -91,7 +92,7 @@ void PosixIBClient::onConnect(const char *host, int port,  int clientId)
     {
         ++attemptCount;
         qDebug() << "Connecting to IB, No of try:" << attemptCount ;
-        bConn = connect(host, port, clientId);
+        bConn = connect(this->host, port, clientId);
 
         if(bConn)
         {
@@ -128,7 +129,7 @@ void PosixIBClient::onDisconnect()
     }
 
     qDebug() <<"Disonnected";
-    emit AdapterConnected();
+    emit AdapterDisconnected();
 }
 
 void PosixIBClient::onProcessMessages()
@@ -218,11 +219,31 @@ void PosixIBClient::processMessages()
 void PosixIBClient::onTest()
 {
 
-    qDebug() << "Placing order ....";
-    placeOrder();
+    //qDebug() << "Placing order ....";
+    //placeOrder();
 
-    //qDebug() << "Requesting market data ....";
-    //onReqMktData();
+//    contract.symbol = "ES";
+//    contract.secType = "FUT";
+//    contract.exchange = "GLOBEX";
+//    contract.expiry = "201512";
+//	  contract.currency = "USD";
+
+    qDebug() << "IBClient onTest():  ES FUT 201512....";
+
+    QString contractId = "167205842";
+    QString exchange = "GLOBEX";
+
+    if(conIdTickMap.contains(contractId))
+    {
+        qDebug() << "IBClient onTest: cancelMktData ES 201512";
+        onCancelMktData(contractId);
+    }
+    else
+    {
+        qDebug() << "IBClient onTest: reqMktData ES 201512";
+        onReqMktData(contractId, exchange);
+    }
+
 }
 
 
@@ -231,7 +252,7 @@ void PosixIBClient::onReqCurrentTime()
     qDebug() << "onReqCurrentTime() entered";
 }
 
-void PosixIBClient::onReqMktData(QString contractId)
+void PosixIBClient::onReqMktData(QString contractId, QString exchange)
 {
     //check if it is in conIdTickMap
 
@@ -243,6 +264,7 @@ void PosixIBClient::onReqMktData(QString contractId)
 
         Contract contract;
         contract.conId = contractId.toLong();
+        contract.exchange = exchange.toStdString();
         pClient->reqContractDetails(reqId2, contract);
 //        contract.symbol = "ES";
 //        contract.secType = "FUT";
@@ -285,6 +307,8 @@ void PosixIBClient::onCancelMktData(QString contractId)
     if(conIdTickMap.contains(contractId))
     {
         pClient->cancelMktData(conIdTickMap[contractId]);
+        //clear this contract in map
+        conIdTickMap.remove(contractId);
     }
 }
 
@@ -293,6 +317,9 @@ void PosixIBClient::onCancelMktDepth(QString contractId)
     if(conIdDepthMap.contains(contractId))
     {
         pClient->cancelMktDepth(conIdDepthMap[contractId]);
+        //clear this contract in map
+        conIdDepthMap.remove(contractId);
+
     }
 }
 
@@ -316,11 +343,11 @@ void PosixIBClient::placeOrder()
     contract.symbol = "ES";
     contract.secType = "FUT";
     contract.exchange = "GLOBEX";
-    contract.expiry = "201509";
+    contract.expiry = "201512";
 	contract.currency = "USD";
 
     order.action = "BUY";
-    order.totalQuantity = 5;
+    order.totalQuantity = 1;
 	order.orderType = "LMT";
     order.lmtPrice = 2045.00;
 
@@ -400,12 +427,12 @@ void PosixIBClient::error(const int id, const int errorCode, const IBString erro
 
 void PosixIBClient::tickPrice( TickerId tickerId, TickType field, double price, int canAutoExecute)
 {
-    qDebug() << "Tick price:" << tickerId << ", price:" << price;
+    //qDebug() << "tickPrice():" << tickerId <<", TickType:" << field << ", price:" << price;
 
 }
 void PosixIBClient::tickSize( TickerId tickerId, TickType field, int size)
 {
-    qDebug() << "Tick size:" << tickerId << ", size:" << size;
+    //qDebug() << "tickSize():" << tickerId <<", TickType:" << field << ", size:" << size;
 
 }
 void PosixIBClient::tickOptionComputation( TickerId tickerId, TickType tickType, double impliedVol, double delta,
@@ -414,19 +441,23 @@ void PosixIBClient::tickOptionComputation( TickerId tickerId, TickType tickType,
 void PosixIBClient::tickGeneric(TickerId tickerId, TickType tickType, double value) {}
 void PosixIBClient::tickString(TickerId tickerId, TickType tickType, const IBString& value)
 {
+    //
     //Handle RTVolume
     if(tickType == 48)
     {
+
+
         QString str = QString::fromStdString(value);
         QStringList strList = str.split(";");
         Tick tick;
 
         tick.contractId = conIdTickMap.key(tickerId);
-        tick.timeStamp = QDateTime::fromTime_t(strList[2].toLong());
+        tick.timeStamp = QDateTime::fromMSecsSinceEpoch(strList[2].toLongLong());
         tick.price = strList[0].toDouble();
         tick.size = strList[1].toLong();
 
         emit TickUpdating(tick);
+        qDebug() << "tickString():" << tick.timeStamp.toString("hh:mm:ss.zzz")<<" >>tickerId:" << tickerId <<", TickType:" << tickType << ", Value:" << str;
     }
 
 }

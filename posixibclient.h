@@ -46,13 +46,13 @@ public:
     long nextValidUId;
 
 public slots:
-    void onConnect(const char *host, int port,  int clientID);
+    void onConnect(QString host, int port,  int clientID);
     void onDisconnect();
     void onReqCurrentTime();
-    void onReqMktData(QString tickerId);
-    void onReqMktDepth(QString tickerId);
-    void onCancelMktData(QString tickerId);
-    void onCancelMktDepth(QString tickerId);
+    void onReqMktData(QString contractId, QString exchange);
+    void onReqMktDepth(QString contractId);
+    void onCancelMktData(QString contractId);
+    void onCancelMktDepth(QString contractId);
 
     void onProcessMessages();
     void onTest();
