@@ -73,12 +73,14 @@ signals:
 
     void ContractDetailUpdating(const TickerData &tickerData);
 
+    void AdjustTimeDiff(qint64 timeDiffMS);
 
 public:
 
     bool connect(const char *host, int port, int clientId = 0);
 	void disconnect() const;
 	bool isConnected() const;
+    void emitAdapterDisconnected();
 
 private:
 
@@ -167,6 +169,9 @@ private:
     State state;
     time_t sleepDeadline;
 
+    qint64 timeReq;
+    qint64 timeResp;
+    qint64 latency;
 };
 
 #endif

@@ -14,21 +14,28 @@ DigitalClock::DigitalClock(QWidget *parent)
     setWindowFlags(Qt::FramelessWindowHint);
     setSegmentStyle(Flat);
 
+    timeDiffMS = 0;
+
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(showTime()));
     timer->start(1000);
     setDigitCount(10);
     showTime();
     resize(180, 30);
+
+
+}
+
+void DigitalClock::setTimeDiffMS(qint64 timeDiffMS)
+{
+    this->timeDiffMS = timeDiffMS;
 }
 
 void DigitalClock::showTime()
 {
-    QTime time = QTime::currentTime();
-    QString text = time.toString("hh:mm:ss");
-//    if ((time.second() % 2) == 0)
-//        text[2] = ' ';
-    //qDebug() << text;
+//    QTime time = QTime::currentTime();
+//    QString text = time.toString("hh:mm:ss");
 
+    QString text = QDateTime::currentDateTime().addMSecs(-timeDiffMS).toString("hh:mm:ss");
     display(text);
 }

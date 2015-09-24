@@ -12,7 +12,7 @@ class QLineEdit;
 class QPushButton;
 class QLabel;
 class PolluxusLogger;
-
+class DigitalClock;
 
 class PolluxusMain : public QWidget
 {
@@ -52,6 +52,7 @@ private:
     QLabel *lbLight;
 
     PolluxusLogger *pLogger;
+    DigitalClock *pClock;
 
     void createMenuBar();
     void createToolBar();
@@ -68,6 +69,7 @@ public slots:
     void onAdapterConnected();
     void onAdapterDisconnected();
     void onTest();
+    void onAdjustTimeDiff(qint64 timeDiffMS);
 
 
 };

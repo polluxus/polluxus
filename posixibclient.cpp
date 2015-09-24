@@ -134,6 +134,11 @@ void PosixIBClient::onDisconnect()
     emit AdapterDisconnected();
 }
 
+void PosixIBClient::emitAdapterDisconnected()
+{
+    emit AdapterDisconnected();
+}
+
 void PosixIBClient::onProcessMessages()
 {
     while (isConnected())
@@ -142,6 +147,8 @@ void PosixIBClient::onProcessMessages()
     }
 
 }
+
+
 
 void PosixIBClient::processMessages()
 {
@@ -247,6 +254,18 @@ void PosixIBClient::onTest()
         onReqMktData(contractId, exchange);
     }
 
+    if(conIdDepthMap.contains(contractId))
+    {
+        qDebug() << "IBClient onTest: onCancelMktDepth ES 201512";
+        onCancelMktDepth(contractId);
+    }
+    else
+    {
+        qDebug() << "IBClient onTest: onCancelMktDepth ES 201512";
+        onReqMktDepth(contractId, exchange);
+    }
+
+
 }
 
 
@@ -335,7 +354,9 @@ void PosixIBClient::reqCurrentTime()
 //    qDebug() << "PosixIBClient: requesting current time";
 //    sleepDeadline = time( NULL) + PING_DEADLINE;
 //    state = ST_PING_ACK;
+
       qDebug() << "Start reqTime:" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
+      timeReq = QDateTime::currentMSecsSinceEpoch();
       pClient->reqCurrentTime();
 
 }
@@ -406,8 +427,11 @@ void PosixIBClient::nextValidId( OrderId orderId)
 
 void PosixIBClient::currentTime(long time)
 {
+    timeResp = QDateTime::currentMSecsSinceEpoch();
+    latency =qint64(0.5 * (timeResp - timeReq));
     qDebug() << "End reqTime:" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
-    timeDiffMS = QDateTime::currentMSecsSinceEpoch() - time * 1000;
+    timeDiffMS = timeResp - time * 1000;
+    emit AdjustTimeDiff( timeDiffMS);
     qDebug() << "timeDiffMS:" << timeDiffMS;
 }
 
@@ -435,14 +459,15 @@ void PosixIBClient::tickGeneric(TickerId tickerId, TickType tickType, double val
 void PosixIBClient::tickString(TickerId tickerId, TickType tickType, const IBString& value)
 {
     //use tickType = 45 to update timeDiffMS
-    if(tickType == 45)
-    {
-        qDebug() << "tickString():" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-                 <<" >>tickerId:" << tickerId
-                 <<", TickType:" << tickType
-                 << ", Value:" << QString::fromStdString(value);
+//    if(tickType == 45)
+//    {
+//        qDebug() << "tickString():" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+//                 <<" >>tickerId:" << tickerId
+//                 <<", TickType:" << tickType
+//                 << ", Value:" << QString::fromStdString(value);
 
-    }
+//    }
+
     //Handle RTVolume
     QString conId = conIdTickMap.key(tickerId, "");
     if(tickType == 48 && conId != "")
@@ -511,7 +536,7 @@ void PosixIBClient::updateMktDepth(TickerId id, int position, int operation, int
 
         Depth depth;
         depth.contractId = conId;
-        depth.timeStamp = QDateTime::currentDateTime().addMSecs(timeDiffMS);
+        depth.timeStamp = QDateTime::currentDateTime().addMSecs(-timeDiffMS);
 
         depth.side = side;
         depth.size = size;

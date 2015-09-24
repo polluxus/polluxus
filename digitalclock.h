@@ -12,9 +12,10 @@ class DigitalClock : public QLCDNumber
 
 public:
     DigitalClock(QWidget *parent = 0);
+    void setTimeDiffMS(qint64 timeDiffMS);
 private:
     //QThread *pThread;
-
+    qint64 timeDiffMS;
 private slots:
 
     void showTime();

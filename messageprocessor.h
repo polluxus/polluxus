@@ -22,6 +22,8 @@ private:
             //qDebug() << "MessageProcessor: start() from " << QThread::currentThreadId();
             pIBClient->processMessages();
         }
+        //for some reason, data feed connect not available
+        pIBClient->emitAdapterDisconnected();
     }
 
 private:

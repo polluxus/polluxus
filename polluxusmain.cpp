@@ -42,7 +42,7 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
 
     connect(pIBAdapter, SIGNAL(AdapterConnected()), this, SLOT(onAdapterConnected()));
     connect(pIBAdapter, SIGNAL(AdapterDisconnected()), this, SLOT(onAdapterDisconnected()));
-
+    connect(pIBAdapter, SIGNAL(AdjustTimeDiff(qint64)), this, SLOT(onAdjustTimeDiff(qint64)));
 
     pLogger = new PolluxusLogger(this);
     pLogger->show();
@@ -130,7 +130,7 @@ void PolluxusMain::createToolBar()
     btnConnect->setCheckable(true);
 
 
-    DigitalClock *pClock = new DigitalClock(this);
+    pClock = new DigitalClock(this);
 
 
 
@@ -182,6 +182,12 @@ void PolluxusMain::onTest()
 {
     QMetaObject::invokeMethod(pIBAdapter, "onTest", Qt::QueuedConnection);
 
+}
+
+void PolluxusMain::onAdjustTimeDiff(qint64 timeDiffMS)
+{
+    pClock->setTimeDiffMS(timeDiffMS);
+    qDebug() << "Signal AdjustTimeDiff() received";
 }
 
 void PolluxusMain::onAdapterConnect()
