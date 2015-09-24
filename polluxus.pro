@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     posixibclient.cpp \
     digitalclock.cpp \
     polluxuslogger.cpp \
-    messageprocessor.cpp
+    messageprocessor.cpp \
+    strategy/kalmanpairui.cpp
 
 HEADERS  += polluxusmain.h \
     tws/Shared/CommissionReport.h \
@@ -46,7 +47,8 @@ HEADERS  += polluxusmain.h \
     marketdata.h \
     digitalclock.h \
     polluxuslogger.h \
-    messageprocessor.h
+    messageprocessor.h \
+    strategy/kalmanpairui.h
 
 
 INCLUDEPATH += tws/src \

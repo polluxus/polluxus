@@ -444,12 +444,12 @@ void PosixIBClient::error(const int id, const int errorCode, const IBString erro
 
 void PosixIBClient::tickPrice( TickerId tickerId, TickType field, double price, int canAutoExecute)
 {
-    //qDebug() << "tickPrice():" << tickerId <<", TickType:" << field << ", price:" << price;
+    qDebug() << "tickPrice():" << tickerId <<", TickType:" << field << ", price:" << price;
 
 }
 void PosixIBClient::tickSize( TickerId tickerId, TickType field, int size)
 {
-    //qDebug() << "tickSize():" << tickerId <<", TickType:" << field << ", size:" << size;
+    qDebug() << "tickSize():" << tickerId <<", TickType:" << field << ", size:" << size;
 
 }
 void PosixIBClient::tickOptionComputation( TickerId tickerId, TickType tickType, double impliedVol, double delta,
