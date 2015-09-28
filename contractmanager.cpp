@@ -1,65 +1,47 @@
-#include "polluxuslogger.h"
+#include "contractmanager.h"
+#include <QTableView>
+#include <QVBoxLayout>
+#include <QDebug>
+#include <QDir>
+#include <QSettings>
 
-PolluxusLogger::PolluxusLogger(QWidget *parent) : QWidget(parent)
+ContractManager::ContractManager(QWidget *parent) : QWidget(parent)
 {
-
-
     setWindowFlags(Qt::Window);
-    setWindowTitle("Log");
+    setWindowTitle("ContractManager");
 
-    createToolBar();
-    createMsgTextEdit();
+    pTableView = new QTableView();
+    pModel = new ContractManagerModel(0);
 
     QVBoxLayout *vLayout = new QVBoxLayout;
     vLayout->setSpacing(0);
     vLayout->setMargin(0);
     vLayout->setContentsMargins(0,0,0,0);
 
-    vLayout->addWidget(pToolBar);
-    vLayout->addWidget(pMsgTextEdit);
+    vLayout->addWidget(pTableView);
 
     setLayout(vLayout);
+
+    pTableView->setModel(pModel);
+    pTableView->show();
+
     setMinimumSize(320, 200);
-
     loadWorkSpace();
-
 }
 
-PolluxusLogger::~PolluxusLogger()
+ContractManager::~ContractManager()
 {
     saveWorkSpace();
 }
 
-
-void PolluxusLogger::createToolBar()
+void ContractManager::saveWorkSpace()
 {
-    pToolBar = new QToolBar;
-    btnClear = new QPushButton(tr("Clear"));
-    pToolBar->addWidget(btnClear);
-}
-
-void PolluxusLogger::createMsgTextEdit()
-{
-    pMsgTextEdit = new QPlainTextEdit;
-    pMsgTextEdit->setReadOnly(true);
-    pMsgTextEdit->appendPlainText("We are ready");
-
-}
-
-
-void PolluxusLogger::onOrderUpdated(QString msg)
-{
-    pMsgTextEdit->appendPlainText(msg);
-}
-
-void PolluxusLogger::saveWorkSpace()
-{
-    qDebug() << "PolluxusLogger::saveWorkSpace";
+    qDebug() << "saveWorkSpace";
     QString iniFileString = QDir::currentPath() + "/workspace.ini";
 
     QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
-    wsSettings->beginGroup("polluxuslogger");
+    wsSettings->beginGroup("contractmanager");
     wsSettings->setValue("geometry", saveGeometry());
     wsSettings->setValue( "maximized", isMaximized());
     if ( !isMaximized() ) {
@@ -71,14 +53,14 @@ void PolluxusLogger::saveWorkSpace()
     wsSettings->sync();
 }
 
-void PolluxusLogger::loadWorkSpace()
+void ContractManager::loadWorkSpace()
 {
     qDebug() << "loadWorkSpace";
     QString iniFileString = QDir::currentPath() + "/workspace.ini";
 
     QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
-    wsSettings->beginGroup("polluxuslogger");
+    wsSettings->beginGroup("contractmanager");
     restoreGeometry(wsSettings->value( "geometry", saveGeometry() ).toByteArray());
     move(wsSettings->value( "pos", pos() ).toPoint());
     resize(wsSettings->value( "size", size()).toSize());
@@ -88,3 +70,4 @@ void PolluxusLogger::loadWorkSpace()
     }
     wsSettings->endGroup();
 }
+

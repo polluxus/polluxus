@@ -22,7 +22,9 @@ SOURCES += main.cpp\
     digitalclock.cpp \
     polluxuslogger.cpp \
     messageprocessor.cpp \
-    strategy/kalmanpairui.cpp
+    strategy/kalmanpairui.cpp \
+    contractmanager.cpp \
+    contractmanagermodel.cpp
 
 HEADERS  += polluxusmain.h \
     tws/Shared/CommissionReport.h \
@@ -48,7 +50,9 @@ HEADERS  += polluxusmain.h \
     digitalclock.h \
     polluxuslogger.h \
     messageprocessor.h \
-    strategy/kalmanpairui.h
+    strategy/kalmanpairui.h \
+    contractmanager.h \
+    contractmanagermodel.h
 
 
 INCLUDEPATH += tws/src \

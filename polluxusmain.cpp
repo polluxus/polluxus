@@ -8,7 +8,7 @@
 #include "polluxuslogger.h"
 #include "digitalclock.h"
 #include "marketdata.h"
-
+#include "contractmanager.h"
 
 
 PolluxusMain::PolluxusMain(QWidget *parent) :
@@ -46,6 +46,9 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
 
     pLogger = new PolluxusLogger(this);
     pLogger->show();
+
+    pContractManager = new ContractManager(this);
+    pContractManager->show();
 
     connect(pIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
     loadWorkSpace();

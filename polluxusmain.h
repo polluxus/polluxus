@@ -13,6 +13,7 @@ class QPushButton;
 class QLabel;
 class PolluxusLogger;
 class DigitalClock;
+class ContractManager;
 
 class PolluxusMain : public QWidget
 {
@@ -53,6 +54,7 @@ private:
 
     PolluxusLogger *pLogger;
     DigitalClock *pClock;
+    ContractManager *pContractManager;
 
     void createMenuBar();
     void createToolBar();
