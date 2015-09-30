@@ -63,7 +63,7 @@ void PolluxusLogger::saveWorkSpace()
     wsSettings->setValue("geometry", saveGeometry());
     wsSettings->setValue( "maximized", isMaximized());
     if ( !isMaximized() ) {
-            wsSettings->setValue( "pos", pos() );
+            wsSettings->setValue( "pos", pos() + QPoint(0, 8) );
             wsSettings->setValue( "size", size() );
         }
     wsSettings->endGroup();

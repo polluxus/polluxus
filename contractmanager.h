@@ -3,7 +3,12 @@
 
 #include <QWidget>
 #include "contractmanagermodel.h"
+#include "marketdata.h"
+
+
 class QTableView;
+class QToolBar;
+class QPushButton;
 
 class ContractManager : public QWidget
 {
@@ -12,8 +17,13 @@ public:
     explicit ContractManager(QWidget *parent = 0);
     virtual ~ContractManager();
 
+    QToolBar *pToolBar;
+    QPushButton *btnSubscribe;
+
     QTableView *pTableView;
     ContractManagerModel *pModel;
+
+    void createToolBar();
 
     void loadWorkSpace();
     void saveWorkSpace();
@@ -21,6 +31,7 @@ public:
 signals:
 
 public slots:
+    void onTickUpdating(const Tick &tick);
 };
 
 #endif // CONTRACTMANAGER_H

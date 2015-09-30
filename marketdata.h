@@ -9,9 +9,9 @@
 struct Tick
 {
     QString contractId;
-    QDateTime timeStamp;
-    double price;
-    long size;
+    QString timeStamp;
+    QString price;
+    QString size;
 };
 
 struct Depth

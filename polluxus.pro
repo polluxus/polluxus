@@ -24,7 +24,9 @@ SOURCES += main.cpp\
     messageprocessor.cpp \
     strategy/kalmanpairui.cpp \
     contractmanager.cpp \
-    contractmanagermodel.cpp
+    contractmanagermodel.cpp \
+    orderbookwidget.cpp \
+    runguard.cpp
 
 HEADERS  += polluxusmain.h \
     tws/Shared/CommissionReport.h \
@@ -52,7 +54,9 @@ HEADERS  += polluxusmain.h \
     messageprocessor.h \
     strategy/kalmanpairui.h \
     contractmanager.h \
-    contractmanagermodel.h
+    contractmanagermodel.h \
+    orderbookwidget.h \
+    runguard.h
 
 
 INCLUDEPATH += tws/src \

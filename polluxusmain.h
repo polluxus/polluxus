@@ -34,6 +34,7 @@ public:
 public:
     void saveWorkSpace();
     void loadWorkSpace();
+    void loadGateway();
 
 private:
 
@@ -44,9 +45,12 @@ private:
     QMenuBar *pMenuBar;
     QToolBar *pToolBar;
 
-    QLineEdit *editHost;
-    QLineEdit *editPort;
-    QLineEdit *editClientId;
+
+    QString host;
+    int port;
+    int clientId;
+
+    QPushButton *btnNewOrderBookWidget;
 
     QPushButton *btnTest;
     QPushButton *btnConnect;
@@ -70,9 +74,11 @@ public slots:
     void onAdapterConnect();
     void onAdapterConnected();
     void onAdapterDisconnected();
+    void onNewOrderBookWidget();
     void onTest();
     void onAdjustTimeDiff(qint64 timeDiffMS);
-
+    void onViewContractManager();
+    void onViewLogger();
 
 };
 

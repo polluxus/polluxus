@@ -9,7 +9,7 @@
 #include "digitalclock.h"
 #include "marketdata.h"
 #include "contractmanager.h"
-
+#include "orderbookwidget.h"
 
 PolluxusMain::PolluxusMain(QWidget *parent) :
     QWidget(parent, Qt::FramelessWindowHint)
@@ -18,17 +18,28 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     m_nMouseClick_X_Coordinate = 0;
     m_nMouseClick_Y_Coordinate = 0;
 
+    loadGateway();
+
+    QLabel *pLogo = new QLabel();
+    pLogo->setFixedWidth(24);
+    pLogo->setFixedHeight(24);
+    pLogo->setScaledContents( true );
+    pLogo->setPixmap(QPixmap(":/images/setup.png"));
+
     createMenuBar();
     createToolBar();
 
+    QWidget* spacer = new QWidget();
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     QHBoxLayout *hLayout = new QHBoxLayout;
     hLayout->setSpacing(0);
     hLayout->setMargin(0);
     hLayout->setContentsMargins(0,0,0,0);
 
-
+    hLayout->addWidget(pLogo);
     hLayout->addWidget(pMenuBar);
+    hLayout->addWidget(spacer);
     hLayout->addWidget(pToolBar);
     setLayout(hLayout);
 
@@ -50,8 +61,12 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     pContractManager = new ContractManager(this);
     pContractManager->show();
 
+
     connect(pIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
+    connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManager, SLOT(onTickUpdating(const Tick)));
+
     loadWorkSpace();
+
 
     qRegisterMetaType<Tick>("Tick");
     qRegisterMetaType<Tick>("Tick&");
@@ -59,6 +74,8 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     qRegisterMetaType<Depth>("Depth&");
     qRegisterMetaType<TickerData>("TickerData");
     qRegisterMetaType<TickerData>("TickerData&");
+
+    qDebug()<<this->rect().topLeft();
 }
 
 PolluxusMain::~PolluxusMain()
@@ -86,7 +103,10 @@ void PolluxusMain::mouseReleaseEvent(QMouseEvent* event)
     //qDebug() << "mouseReleaseEvent()";
     if(event->globalY() < 100)
     {
-        move(-(event->globalX()),-(event->globalY()));
+        //move(-(event->globalX()),-(event->globalY()));
+        //move(-50, -50);
+
+        qDebug()<<this->rect().topLeft();
     }
 }
 
@@ -97,15 +117,37 @@ void PolluxusMain::createMenuBar()
     QAction *quit = new QAction("&Quit", this);
     QAction *saveWS = new QAction("&Save Workspace", this);
 
+//    QMenu *logo;
+//    logo = pMenuBar->addMenu(QIcon(":/images/setup.png"), "Polluxus");
+
     QMenu *file;
-    file = pMenuBar->addMenu(QIcon(":/images/setup.png"), "Polluxus");
+    file = pMenuBar->addMenu("&File");
     file->addAction(quit);
     file->addAction(saveWS);
+
+    QAction *viewCM = new QAction("Show ContractManager", this);
+    QAction *viewLogger = new QAction("Show Logger", this);
+
+    QMenu *view;
+    view = pMenuBar->addMenu("&View");
+    view->addAction(viewCM);
+    view->addAction(viewLogger);
+
+
+    QMenu *trading;
+    trading = pMenuBar->addMenu("&Trading");
+
+
+    QMenu *about;
+    about = pMenuBar->addMenu("&About");
+
 
     pMenuBar->addSeparator();
 
     connect(quit, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(saveWS, SIGNAL(triggered()), this, SLOT(onSaveWorkSpaces()));
+    connect(viewCM,SIGNAL(triggered()), this, SLOT(onViewContractManager()));
+    connect(viewLogger,SIGNAL(triggered()), this, SLOT(onViewLogger()));
 
     pMenuBar->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 }
@@ -114,19 +156,9 @@ void PolluxusMain::createToolBar()
 {
 
     pToolBar = new QToolBar;
-    //const char *host, int port,  int clientID
-    QLabel *lblHost = new QLabel("Host:");
-    QLabel *lblPort = new QLabel("Port:");
-    QLabel *lblClientId = new QLabel("ClientId:");
 
-    editHost = new QLineEdit();
-    editPort = new QLineEdit();
-    editClientId = new QLineEdit();
 
-    editHost->setText("127.0.0.1");
-    editPort->setText("4001");
-    editClientId->setText("1");
-
+    btnNewOrderBookWidget = new QPushButton("New OrderBook");
     btnTest = new QPushButton(tr("test"));
 
     btnConnect = new QPushButton(tr("Connect"));
@@ -147,18 +179,12 @@ void PolluxusMain::createToolBar()
     QWidget* spacer = new QWidget();
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    pToolBar->addWidget(lblHost);
-     pToolBar->addWidget(editHost);
+    pToolBar->addWidget(spacer);
 
-    pToolBar->addWidget(lblPort);
-    pToolBar->addWidget(editPort);
-
-    pToolBar->addWidget(lblClientId);
-    pToolBar->addWidget(editClientId);
-
+    pToolBar->addWidget(btnNewOrderBookWidget);
     pToolBar->addWidget(btnTest);
     pToolBar->addWidget(btnConnect);
-    pToolBar->addWidget(spacer);
+
     pToolBar->addWidget(pClock);
     pToolBar->addWidget(lbLight);
 
@@ -168,6 +194,7 @@ void PolluxusMain::createToolBar()
 
     pToolBar->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
 
+    connect(btnNewOrderBookWidget, SIGNAL(clicked(bool)), this, SLOT(onNewOrderBookWidget()), Qt::DirectConnection);
     connect(btnTest, SIGNAL(clicked(bool)), this, SLOT(onTest()), Qt::DirectConnection);
     connect(btnConnect, SIGNAL(toggled(bool)), this, SLOT(onAdapterConnect()), Qt::DirectConnection);
 
@@ -177,6 +204,7 @@ void PolluxusMain::adjustTopBarPosition()
 {
     resize(QDesktopWidget().availableGeometry().width(), 24);
     move(0, 0);
+    this->setFixedSize(this->size());
 }
 
 
@@ -199,9 +227,6 @@ void PolluxusMain::onAdapterConnect()
     {
         qDebug() << "MainWindow:Hi I am connecting IB.------"  << QThread::currentThreadId();
 
-        QString host = editHost->text();
-        int port = editPort->text().toInt();
-        int clientId = editClientId->text().toInt();
 
         QMetaObject::invokeMethod(pIBAdapter, "onConnect", Qt::QueuedConnection,
                                   Q_ARG(QString, host),
@@ -236,9 +261,6 @@ void PolluxusMain::onAdapterConnected()
     btnConnect->setText(tr("Disconnect"));
     btnConnect->setEnabled(true);
 
-    editHost->setEnabled(false);
-    editPort->setEnabled(false);
-    editClientId->setEnabled(false);
 
     lbLight->setPixmap(QPixmap(":/images/bullet-green.png"));
 
@@ -253,9 +275,6 @@ void PolluxusMain::onAdapterDisconnected()
 
     btnConnect->setText(tr("Connect"));
     btnConnect->setEnabled(true);
-    editHost->setEnabled(true);
-    editPort->setEnabled(true);
-    editClientId->setEnabled(true);
     lbLight->setPixmap(QPixmap(":/images/bullet-red.png"));
 
 }
@@ -280,6 +299,20 @@ void PolluxusMain::saveWorkSpace()
     wsSettings->sync();
 }
 
+void PolluxusMain::loadGateway()
+{
+    qDebug() << "PolluxusMain::loadGateway";
+    QString iniFileString = QDir::currentPath() + "/workspace.ini";
+
+    QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
+
+    wsSettings->beginGroup("Gateway");
+    host = wsSettings->value( "host", "127.0.0.1").toString();
+    port = wsSettings->value( "port", 4001).toInt();
+    clientId = wsSettings->value( "clientId", 1).toInt();
+    wsSettings->endGroup();
+}
+
 void PolluxusMain::loadWorkSpace()
 {
     qDebug() << "PolluxusMain::loadWorkSpace";
@@ -287,9 +320,6 @@ void PolluxusMain::loadWorkSpace()
 
     QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
-    int port;
-    port = wsSettings->value("appname", 4000).toInt();
-    qDebug() << "Read successfully ini:" << port;
     wsSettings->beginGroup("PolluxusMain");
     restoreGeometry(wsSettings->value( "geometry", saveGeometry() ).toByteArray());
     move(wsSettings->value( "pos", pos() ).toPoint());
@@ -305,4 +335,41 @@ void PolluxusMain::onSaveWorkSpaces()
 {
     this->saveWorkSpace();
     pLogger->saveWorkSpace();
+    pContractManager->saveWorkSpace();
+}
+
+void PolluxusMain::onNewOrderBookWidget()
+{
+    pContractManager->loadWorkSpace();
+//    qDebug() << "onNewOrderBookWidget()";
+//    OrderBookWidget *obWidget = new OrderBookWidget(this);
+//    obWidget->show();
+}
+
+void PolluxusMain::onViewContractManager()
+{
+    if(!pContractManager)
+    {
+        pContractManager = new ContractManager(this);
+        connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManager, SLOT(onTickUpdating(const Tick)));
+        pContractManager->show();
+    }
+    else
+    {
+        if (!pContractManager->isVisible()) pContractManager->show();
+    }
+}
+
+void PolluxusMain::onViewLogger()
+{
+    if(!pLogger)
+    {
+        pLogger = new PolluxusLogger(this);
+        connect(pIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
+        pLogger->show();
+    }
+    else
+    {
+        if (!pLogger->isVisible()) pLogger->show();
+    }
 }
