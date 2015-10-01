@@ -5,10 +5,10 @@ ContractManagerModel::ContractManagerModel(QObject *parent)
 {
 
     QStringList tmpStrList1;
-    tmpStrList1<<"167205842"<<"GLOBEX"<<"ES"<<"FUT"<<"201512"<<"1980.5"<<"2";
+    tmpStrList1<<"167205842"<<"GLOBEX"<<"ES"<<"FUT"<<"201512"<<"1980.5"<<"2"<<"120"<<"1960.5"<<"1990.25"<<"110";
 
     QStringList tmpStrList2;
-    tmpStrList2<<"167205847"<<"GLOBEX"<<"NQ"<<"FUT"<<"201512"<<"123.5"<<"6";
+    tmpStrList2<<"167205847"<<"GLOBEX"<<"NQ"<<"FUT"<<"201512"<<"123.5"<<"6"<<"28"<<"120.5"<<"125.0"<<"90";
 
     mGridData["167205842"] = tmpStrList1;
     mGridData["167205847"] = tmpStrList2;
@@ -25,7 +25,7 @@ int ContractManagerModel::rowCount(const QModelIndex & /*parent*/) const
 
 int ContractManagerModel::columnCount(const QModelIndex & /*parent*/) const
 {
-    return 7;
+    return 11;
 }
 
 QVariant ContractManagerModel::data(const QModelIndex &index, int role) const
@@ -67,7 +67,14 @@ QVariant ContractManagerModel::headerData(int section, Qt::Orientation orientati
                 return QString("LastPx");
             case 6:
                 return QString("Qty");
-
+            case 7:
+                return QString("BidSz");
+            case 8:
+                return QString("Bid");
+            case 9:
+                return QString("Ask");
+            case 10:
+                return QString("AskSz");
             }
         }
     }

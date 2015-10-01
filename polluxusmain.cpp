@@ -21,8 +21,8 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     loadGateway();
 
     QLabel *pLogo = new QLabel();
-    pLogo->setFixedWidth(24);
-    pLogo->setFixedHeight(24);
+    pLogo->setFixedWidth(20);
+    pLogo->setFixedHeight(20);
     pLogo->setScaledContents( true );
     pLogo->setPixmap(QPixmap(":/images/setup.png"));
 

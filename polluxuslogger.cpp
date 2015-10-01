@@ -42,7 +42,21 @@ void PolluxusLogger::createMsgTextEdit()
 {
     pMsgTextEdit = new QPlainTextEdit;
     pMsgTextEdit->setReadOnly(true);
-    pMsgTextEdit->appendPlainText("We are ready");
+    pMsgTextEdit->setWordWrapMode(QTextOption::NoWrap);
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready------------------");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready-------------------------------");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
+    pMsgTextEdit->appendPlainText("We are ready, we are ready, we are ready, we are ready");
 
 }
 
