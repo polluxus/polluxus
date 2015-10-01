@@ -5,10 +5,10 @@ ContractManagerModel::ContractManagerModel(QObject *parent)
 {
 
     QStringList tmpStrList1;
-    tmpStrList1<<"167205842"<<"GLOBEX"<<"ES"<<"FUT"<<"201512"<<"1980.5"<<"2"<<"120"<<"1960.5"<<"1990.25"<<"110";
+    tmpStrList1<<"167205842"<<"GLOBEX"<<"ES"<<"FUT"<<"201512"<<"1980.5"<<"2"<<"120"<<"1960.5"<<"1990.25"<<"110"<<"OFF";
 
     QStringList tmpStrList2;
-    tmpStrList2<<"167205847"<<"GLOBEX"<<"NQ"<<"FUT"<<"201512"<<"123.5"<<"6"<<"28"<<"120.5"<<"125.0"<<"90";
+    tmpStrList2<<"167205847"<<"GLOBEX"<<"NQ"<<"FUT"<<"201512"<<"123.5"<<"6"<<"28"<<"120.5"<<"125.0"<<"90"<<"OFF";
 
     mGridData["167205842"] = tmpStrList1;
     mGridData["167205847"] = tmpStrList2;
@@ -25,7 +25,7 @@ int ContractManagerModel::rowCount(const QModelIndex & /*parent*/) const
 
 int ContractManagerModel::columnCount(const QModelIndex & /*parent*/) const
 {
-    return 11;
+    return 12;
 }
 
 QVariant ContractManagerModel::data(const QModelIndex &index, int role) const
@@ -75,6 +75,9 @@ QVariant ContractManagerModel::headerData(int section, Qt::Orientation orientati
                 return QString("Ask");
             case 10:
                 return QString("AskSz");
+            case 11:
+                return QString("Status");
+
             }
         }
     }
@@ -83,7 +86,7 @@ QVariant ContractManagerModel::headerData(int section, Qt::Orientation orientati
 
 bool ContractManagerModel::setData(const QModelIndex & index, const QVariant & value, int role)
 {
-    if (role == Qt::EditRole && (index.column()==0 || index.column() == 1))
+    if (role == Qt::EditRole && index.column()==0 )
     {
         //save value from editor to member m_gridData
         if(value.toString().trimmed() != "")   mGridData[mKeyList[index.row()]][index.column()]= value.toString();
@@ -93,7 +96,7 @@ bool ContractManagerModel::setData(const QModelIndex & index, const QVariant & v
 
 Qt::ItemFlags ContractManagerModel::flags(const QModelIndex &index) const
 {
-    if (index.column()==0 || index.column()==1)
+    if (index.column()==0 )
         return Qt::ItemIsEditable | QAbstractTableModel::flags(index);
     else
         return QAbstractTableModel::flags(index);

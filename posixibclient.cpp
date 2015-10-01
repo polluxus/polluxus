@@ -243,6 +243,10 @@ void PosixIBClient::onTest()
     QString contractId = "167205842";
     QString exchange = "GLOBEX";
 
+    Contract contract;
+    contract.conId = contractId.toLong();
+    pClient->reqContractDetails(getNextValidUId(), contract);
+
     if(conIdTickMap.contains(contractId))
     {
         qDebug() << "IBClient onTest: cancelMktData ES 201512";
@@ -507,17 +511,23 @@ void PosixIBClient::accountDownloadEnd(const IBString& accountName) {}
 
 void PosixIBClient::contractDetails( int reqId, const ContractDetails& contractDetails)
 {
-    TickerData tickerData;
-    tickerData.contractId = QString::number(contractDetails.summary.conId);
-    tickerData.symbol = QString::fromStdString(contractDetails.summary.symbol);
-    tickerData.secType = QString::fromStdString(contractDetails.summary.secType);
-    tickerData.exchange = QString::fromStdString(contractDetails.summary.exchange);
-    tickerData.expiry = QString::fromStdString(contractDetails.summary.expiry);
-    tickerData.currency = QString::fromStdString(contractDetails.summary.currency);
 
-    tickerData.minTick = contractDetails.minTick;
+    qDebug() << "conId:" << QString::number(contractDetails.summary.conId)
+             <<", exch:" << QString::fromStdString(contractDetails.summary.exchange)
+             <<", expiry:" << QString::fromStdString(contractDetails.summary.expiry);
 
-    emit ContractDetailUpdating(tickerData);
+//    TickerData tickerData;
+//    tickerData.contractId = QString::number(contractDetails.summary.conId);
+//    tickerData.symbol = QString::fromStdString(contractDetails.summary.symbol);
+//    tickerData.secType = QString::fromStdString(contractDetails.summary.secType);
+//    tickerData.exchange = QString::fromStdString(contractDetails.summary.exchange);
+//    tickerData.expiry = QString::fromStdString(contractDetails.summary.expiry);
+//    tickerData.currency = QString::fromStdString(contractDetails.summary.currency);
+
+//    tickerData.minTick = contractDetails.minTick;
+
+//    emit ContractDetailUpdating(tickerData);
+
 
 }
 

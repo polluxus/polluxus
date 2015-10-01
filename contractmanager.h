@@ -9,6 +9,8 @@
 class QTableView;
 class QToolBar;
 class QPushButton;
+class QMenu;
+class QAction;
 
 class ContractManager : public QWidget
 {
@@ -24,14 +26,22 @@ public:
     ContractManagerModel *pModel;
 
     void createToolBar();
+    void createContextMenu();
 
     void loadWorkSpace();
     void saveWorkSpace();
 
-signals:
+    QMenu *pContextMenu;
+    QAction *pAtnSubscribe;
+    QAction *pAtnDelete;
+    QAction *pAtnDetail;
 
+signals:
+    void SubscribeMarketData(QString contractId);
 public slots:
     void onTickUpdating(const Tick &tick);
+    void onCustomMenuRequested(QPoint pos);
+    void onAtnSubscribeTriggered();
 };
 
 #endif // CONTRACTMANAGER_H

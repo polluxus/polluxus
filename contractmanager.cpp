@@ -6,6 +6,9 @@
 #include <QSettings>
 #include <QPushButton>
 #include <QToolBar>
+#include <QHeaderView>
+#include <QMenu>
+#include <QAction>
 
 ContractManager::ContractManager(QWidget *parent) : QWidget(parent)
 {
@@ -29,7 +32,15 @@ ContractManager::ContractManager(QWidget *parent) : QWidget(parent)
     setLayout(vLayout);
 
     pTableView->setModel(pModel);
+
+    (pTableView->horizontalHeader())->setSectionResizeMode(QHeaderView::ResizeToContents);
+    pTableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    pTableView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(pTableView, SIGNAL(customContextMenuRequested(QPoint)), SLOT(onCustomMenuRequested(QPoint)));
+
     pTableView->show();
+
+    createContextMenu();
 
     setMinimumSize(320, 200);
     loadWorkSpace();
@@ -45,6 +56,22 @@ void ContractManager::createToolBar()
     pToolBar = new QToolBar;
     btnSubscribe = new QPushButton(tr("Subscribe"));
     pToolBar->addWidget(btnSubscribe);
+}
+
+void ContractManager::createContextMenu()
+{
+    pAtnSubscribe = new QAction("Toggle Subscribe", this);
+    pAtnDelete = new QAction("Delete", this);
+    pAtnDetail = new QAction("Contract Detail...", this);
+
+    pContextMenu = new QMenu(this);
+    pContextMenu->addAction(pAtnDetail);
+    pContextMenu->addSeparator();
+    pContextMenu->addAction(pAtnSubscribe);
+    pContextMenu->addAction(pAtnDelete);
+
+    connect(pAtnSubscribe,SIGNAL(triggered()), this, SLOT(onAtnSubscribeTriggered()));
+
 }
 
 void ContractManager::saveWorkSpace()
@@ -105,3 +132,45 @@ void ContractManager::onTickUpdating(const Tick &tick)
     pModel->onTickUpdating(tick);
 
 }
+
+
+
+void ContractManager::onCustomMenuRequested(QPoint pos)
+{
+    QModelIndex index = pTableView->indexAt(pos);
+
+    //popup menu only in range
+    if(index.row()>=0 && index.row()< pModel->rowCount()-1)
+    {
+        //pTableView->clearSelection();
+        //pTableView->selectRow(index.row());
+        pContextMenu->popup(pTableView->viewport()->mapToGlobal(pos));
+
+        qDebug()<<"pContextMenu index row(): " << index.row();
+
+    }
+}
+
+void ContractManager::onAtnSubscribeTriggered()
+{
+    //QModelIndex index = pTableView->indexAt(pContextMenu->pos());
+    qDebug()<<"CurrentIndex row()" << pTableView->selectionModel()->currentIndex().row();
+    //Check status
+    QModelIndex selIndex = pTableView->selectionModel()->currentIndex();
+    int idxRow = selIndex.row();
+
+    QString subStatus = pModel->index(idxRow,11).data().toString();
+    qDebug()<<"Status:" << subStatus;
+
+    if(subStatus == "ON")
+    {
+
+    }
+    else
+    {
+
+    }
+}
+
+
+
