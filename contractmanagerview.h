@@ -1,5 +1,5 @@
-#ifndef CONTRACTMANAGER_H
-#define CONTRACTMANAGER_H
+#ifndef CONTRACTMANAGERVIEW_H
+#define CONTRACTMANAGERVIEW_H
 
 #include <QWidget>
 #include "contractmanagermodel.h"
@@ -12,12 +12,12 @@ class QPushButton;
 class QMenu;
 class QAction;
 
-class ContractManager : public QWidget
+class ContractManagerView : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ContractManager(QWidget *parent = 0);
-    virtual ~ContractManager();
+    explicit ContractManagerView(QWidget *parent = 0);
+    virtual ~ContractManagerView();
 
     QToolBar *pToolBar;
     QPushButton *btnSubscribe;

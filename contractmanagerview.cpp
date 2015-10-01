@@ -1,4 +1,4 @@
-#include "contractmanager.h"
+#include "contractmanagerview.h"
 #include <QTableView>
 #include <QVBoxLayout>
 #include <QDebug>
@@ -10,7 +10,7 @@
 #include <QMenu>
 #include <QAction>
 
-ContractManager::ContractManager(QWidget *parent) : QWidget(parent)
+ContractManagerView::ContractManagerView(QWidget *parent) : QWidget(parent)
 {
     setWindowFlags(Qt::Window);
     setWindowTitle("ContractManager");
@@ -46,19 +46,19 @@ ContractManager::ContractManager(QWidget *parent) : QWidget(parent)
     loadWorkSpace();
 }
 
-ContractManager::~ContractManager()
+ContractManagerView::~ContractManagerView()
 {
     saveWorkSpace();
 }
 
-void ContractManager::createToolBar()
+void ContractManagerView::createToolBar()
 {
     pToolBar = new QToolBar;
     btnSubscribe = new QPushButton(tr("Subscribe"));
     pToolBar->addWidget(btnSubscribe);
 }
 
-void ContractManager::createContextMenu()
+void ContractManagerView::createContextMenu()
 {
     pAtnSubscribe = new QAction("Toggle Subscribe", this);
     pAtnDelete = new QAction("Delete", this);
@@ -74,9 +74,9 @@ void ContractManager::createContextMenu()
 
 }
 
-void ContractManager::saveWorkSpace()
+void ContractManagerView::saveWorkSpace()
 {
-    qDebug() << "ContractManager::saveWorkSpace()";
+    qDebug() << "ContractManagerView::saveWorkSpace()";
     qDebug() << "pos():" << pos();
     qDebug() << "FrameGeo:" << this->frameGeometry();
 
@@ -99,9 +99,9 @@ void ContractManager::saveWorkSpace()
     wsSettings->sync();
 }
 
-void ContractManager::loadWorkSpace()
+void ContractManagerView::loadWorkSpace()
 {
-    qDebug() << "ContractManager::loadWorkSpace()";
+    qDebug() << "ContractManagerView::loadWorkSpace()";
 
 
     QString iniFileString = QDir::currentPath() + "/workspace.ini";
@@ -126,7 +126,7 @@ void ContractManager::loadWorkSpace()
 
 }
 
-void ContractManager::onTickUpdating(const Tick &tick)
+void ContractManagerView::onTickUpdating(const Tick &tick)
 {
     qDebug() << "Recieved TickUpdating()"<<tick.contractId;
     pModel->onTickUpdating(tick);
@@ -135,7 +135,7 @@ void ContractManager::onTickUpdating(const Tick &tick)
 
 
 
-void ContractManager::onCustomMenuRequested(QPoint pos)
+void ContractManagerView::onCustomMenuRequested(QPoint pos)
 {
     QModelIndex index = pTableView->indexAt(pos);
 
@@ -151,7 +151,7 @@ void ContractManager::onCustomMenuRequested(QPoint pos)
     }
 }
 
-void ContractManager::onAtnSubscribeTriggered()
+void ContractManagerView::onAtnSubscribeTriggered()
 {
     //QModelIndex index = pTableView->indexAt(pContextMenu->pos());
     qDebug()<<"CurrentIndex row()" << pTableView->selectionModel()->currentIndex().row();

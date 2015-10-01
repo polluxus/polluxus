@@ -8,7 +8,7 @@
 #include "polluxuslogger.h"
 #include "digitalclock.h"
 #include "marketdata.h"
-#include "contractmanager.h"
+#include "contractmanagerview.h"
 #include "orderbookwidget.h"
 
 PolluxusMain::PolluxusMain(QWidget *parent) :
@@ -58,12 +58,12 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     pLogger = new PolluxusLogger(this);
     pLogger->show();
 
-    pContractManager = new ContractManager(this);
-    pContractManager->show();
+    pContractManagerView = new ContractManagerView(this);
+    pContractManagerView->show();
 
 
     connect(pIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
-    connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManager, SLOT(onTickUpdating(const Tick)));
+    connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManagerView, SLOT(onTickUpdating(const Tick)));
 
     loadWorkSpace();
 
@@ -335,12 +335,12 @@ void PolluxusMain::onSaveWorkSpaces()
 {
     this->saveWorkSpace();
     pLogger->saveWorkSpace();
-    pContractManager->saveWorkSpace();
+    pContractManagerView->saveWorkSpace();
 }
 
 void PolluxusMain::onNewOrderBookWidget()
 {
-    pContractManager->loadWorkSpace();
+
 //    qDebug() << "onNewOrderBookWidget()";
 //    OrderBookWidget *obWidget = new OrderBookWidget(this);
 //    obWidget->show();
@@ -348,15 +348,15 @@ void PolluxusMain::onNewOrderBookWidget()
 
 void PolluxusMain::onViewContractManager()
 {
-    if(!pContractManager)
+    if(!pContractManagerView)
     {
-        pContractManager = new ContractManager(this);
-        connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManager, SLOT(onTickUpdating(const Tick)));
-        pContractManager->show();
+        pContractManagerView = new ContractManagerView(this);
+        connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManagerView, SLOT(onTickUpdating(const Tick)));
+        pContractManagerView->show();
     }
     else
     {
-        if (!pContractManager->isVisible()) pContractManager->show();
+        if (!pContractManagerView->isVisible()) pContractManagerView->show();
     }
 }
 
