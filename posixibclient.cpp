@@ -79,7 +79,7 @@ bool PosixIBClient::isConnected() const
 void PosixIBClient::onConnect(QString host, int port,  int clientId)
 {
 
-    qDebug() << "PosixIBClient: onConnect() from " << QThread::currentThreadId();
+    qDebug() << "PosixIBClient: onConnect() in thread: " << QThread::currentThreadId();
 
 
     this->host = host.toUtf8().constData();
@@ -152,7 +152,7 @@ void PosixIBClient::onProcessMessages()
 
 void PosixIBClient::processMessages()
 {
-    //qDebug() << "PosixIBClient: processMessages() from " << QThread::currentThreadId();
+    //qDebug() << "PosixIBClient: processMessages() in thread: " << QThread::currentThreadId();
 
     fd_set readSet, writeSet, errorSet;
 
@@ -509,24 +509,25 @@ void PosixIBClient::updatePortfolio(const Contract& contract, int position,
 void PosixIBClient::updateAccountTime(const IBString& timeStamp) {}
 void PosixIBClient::accountDownloadEnd(const IBString& accountName) {}
 
-void PosixIBClient::contractDetails( int reqId, const ContractDetails& contractDetails)
+void PosixIBClient::contractDetails(int reqId, const ContractDetails& contractDetails)
 {
 
     qDebug() << "conId:" << QString::number(contractDetails.summary.conId)
              <<", exch:" << QString::fromStdString(contractDetails.summary.exchange)
              <<", expiry:" << QString::fromStdString(contractDetails.summary.expiry);
 
-//    TickerData tickerData;
-//    tickerData.contractId = QString::number(contractDetails.summary.conId);
-//    tickerData.symbol = QString::fromStdString(contractDetails.summary.symbol);
-//    tickerData.secType = QString::fromStdString(contractDetails.summary.secType);
-//    tickerData.exchange = QString::fromStdString(contractDetails.summary.exchange);
-//    tickerData.expiry = QString::fromStdString(contractDetails.summary.expiry);
-//    tickerData.currency = QString::fromStdString(contractDetails.summary.currency);
+    ContractInfo contractInfo;
+    contractInfo.contractId = QString::number(contractDetails.summary.conId);
+    contractInfo.symbol = QString::fromStdString(contractDetails.summary.symbol);
+    contractInfo.secType = QString::fromStdString(contractDetails.summary.secType);
+    contractInfo.exchange = QString::fromStdString(contractDetails.summary.exchange);
+    contractInfo.primaryExchange = QString::fromStdString(contractDetails.summary.primaryExchange);
+    contractInfo.expiry = QString::fromStdString(contractDetails.summary.expiry);
+    contractInfo.currency = QString::fromStdString(contractDetails.summary.currency);
 
-//    tickerData.minTick = contractDetails.minTick;
+    contractInfo.minTick = contractDetails.minTick;
 
-//    emit ContractDetailUpdating(tickerData);
+    emit ContractDetailUpdating(contractInfo);
 
 
 }

@@ -2,6 +2,7 @@
 #define MARKETDATA
 
 #include <QString>
+#include <QStringList>
 #include <QList>
 #include <QMetaType>
 #include <QDateTime>
@@ -26,12 +27,13 @@ struct Depth
 };
 
 
-struct TickerData
+struct ContractInfo
 {
     QString contractId;
     QString symbol;
     QString secType;
     QString exchange;
+    QString primaryExchange;
     QString expiry;
     QString currency;
     int lotSize;
@@ -39,11 +41,27 @@ struct TickerData
     double multiplier;
 };
 
+struct OrderBook
+{
+    QString contractId;
+    QString timeStamp;
+    int flag;   //-1: last update is bid, 0: last update is last, 1: last update is ask
+
+    QString lastTradePx;
+    QString lastTradeSz;
+
+    QStringList lstBidPx;
+    QStringList lstBidSz;
+    QStringList lstAskPx;
+    QStringList lstAskSz;
+};
+
 
 
 Q_DECLARE_METATYPE(Tick)
 Q_DECLARE_METATYPE(Depth)
-Q_DECLARE_METATYPE(TickerData)
+Q_DECLARE_METATYPE(ContractInfo)
+Q_DECLARE_METATYPE(OrderBook)
 
 #endif // MARKETDATA
 

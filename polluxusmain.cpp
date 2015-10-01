@@ -8,8 +8,10 @@
 #include "polluxuslogger.h"
 #include "digitalclock.h"
 #include "marketdata.h"
+#include "contractmanager.h"
 #include "contractmanagerview.h"
 #include "orderbookwidget.h"
+
 
 PolluxusMain::PolluxusMain(QWidget *parent) :
     QWidget(parent, Qt::FramelessWindowHint)
@@ -58,12 +60,19 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     pLogger = new PolluxusLogger(this);
     pLogger->show();
 
+    pContractManager = new ContractManager();
+
+    qDebug() << "PolluxusMain in thread:"  << QThread::currentThreadId();
+    //pContractManager->test();
+
     pContractManagerView = new ContractManagerView(this);
     pContractManagerView->show();
 
+    QMetaObject::invokeMethod( pContractManager, "test1", Qt::QueuedConnection );
 
     connect(pIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
     connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManagerView, SLOT(onTickUpdating(const Tick)));
+    connect(pIBAdapter, SIGNAL(ContractDetailUpdating(const ContractInfo)), pContractManager, SLOT(onContractDetailUpdating(const ContractInfo)));
 
     loadWorkSpace();
 
@@ -72,8 +81,10 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     qRegisterMetaType<Tick>("Tick&");
     qRegisterMetaType<Depth>("Depth");
     qRegisterMetaType<Depth>("Depth&");
-    qRegisterMetaType<TickerData>("TickerData");
-    qRegisterMetaType<TickerData>("TickerData&");
+    qRegisterMetaType<ContractInfo>("ContractInfo");
+    qRegisterMetaType<ContractInfo>("ContractInfo&");
+    qRegisterMetaType<OrderBook>("OrderBook");
+    qRegisterMetaType<OrderBook>("OrderBook&");
 
     qDebug()<<this->rect().topLeft();
 }
@@ -243,7 +254,7 @@ void PolluxusMain::onAdapterConnect()
 
     else
     {
-        qDebug() << "MainWindow:Hi I am disconnecting ib.------"  << QThread::currentThreadId();
+        qDebug() << "MainWindow:Hi I am disconnecting ib.------";
 
         QMetaObject::invokeMethod(pIBAdapter, "onDisconnect", Qt::QueuedConnection );
 
@@ -256,7 +267,7 @@ void PolluxusMain::onAdapterConnect()
 
 void PolluxusMain::onAdapterConnected()
 {
-    qDebug() << "MainWindow:Recv connected signal from Posix.------"  << QThread::currentThreadId();
+    qDebug() << "MainWindow:Recv connected signal from Posix.------";
 
     btnConnect->setText(tr("Disconnect"));
     btnConnect->setEnabled(true);
@@ -271,7 +282,7 @@ void PolluxusMain::onAdapterConnected()
 
 void PolluxusMain::onAdapterDisconnected()
 {
-    qDebug() << "MainWindow:Recv disconnected signal from Posix.------"  << QThread::currentThreadId();
+    qDebug() << "MainWindow:Recv disconnected signal from Posix.------";
 
     btnConnect->setText(tr("Connect"));
     btnConnect->setEnabled(true);
@@ -282,7 +293,7 @@ void PolluxusMain::onAdapterDisconnected()
 
 void PolluxusMain::saveWorkSpace()
 {
-    qDebug() << "PolluxusMain::saveWorkSpace";
+    //qDebug() << "PolluxusMain::saveWorkSpace";
     QString iniFileString = QDir::currentPath() + "/workspace.ini";
     QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
@@ -301,7 +312,7 @@ void PolluxusMain::saveWorkSpace()
 
 void PolluxusMain::loadGateway()
 {
-    qDebug() << "PolluxusMain::loadGateway";
+    //qDebug() << "PolluxusMain::loadGateway";
     QString iniFileString = QDir::currentPath() + "/workspace.ini";
 
     QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
@@ -315,7 +326,7 @@ void PolluxusMain::loadGateway()
 
 void PolluxusMain::loadWorkSpace()
 {
-    qDebug() << "PolluxusMain::loadWorkSpace";
+    //qDebug() << "PolluxusMain::loadWorkSpace";
     QString iniFileString = QDir::currentPath() + "/workspace.ini";
 
     QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);

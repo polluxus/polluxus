@@ -76,9 +76,9 @@ void ContractManagerView::createContextMenu()
 
 void ContractManagerView::saveWorkSpace()
 {
-    qDebug() << "ContractManagerView::saveWorkSpace()";
-    qDebug() << "pos():" << pos();
-    qDebug() << "FrameGeo:" << this->frameGeometry();
+    //qDebug() << "ContractManagerView::saveWorkSpace()";
+    //qDebug() << "pos():" << pos();
+    //qDebug() << "FrameGeo:" << this->frameGeometry();
 
 
 
@@ -101,7 +101,7 @@ void ContractManagerView::saveWorkSpace()
 
 void ContractManagerView::loadWorkSpace()
 {
-    qDebug() << "ContractManagerView::loadWorkSpace()";
+    //qDebug() << "ContractManagerView::loadWorkSpace()";
 
 
     QString iniFileString = QDir::currentPath() + "/workspace.ini";
@@ -119,8 +119,8 @@ void ContractManagerView::loadWorkSpace()
     }
     wsSettings->endGroup();
 
-    qDebug() << "pos():" << pos();
-    qDebug() << "FrameGeo:" << this->frameGeometry();
+    //qDebug() << "pos():" << pos();
+    //qDebug() << "FrameGeo:" << this->frameGeometry();
 
 
 
@@ -146,7 +146,7 @@ void ContractManagerView::onCustomMenuRequested(QPoint pos)
         //pTableView->selectRow(index.row());
         pContextMenu->popup(pTableView->viewport()->mapToGlobal(pos));
 
-        qDebug()<<"pContextMenu index row(): " << index.row();
+       // qDebug()<<"pContextMenu index row(): " << index.row();
 
     }
 }
@@ -154,13 +154,13 @@ void ContractManagerView::onCustomMenuRequested(QPoint pos)
 void ContractManagerView::onAtnSubscribeTriggered()
 {
     //QModelIndex index = pTableView->indexAt(pContextMenu->pos());
-    qDebug()<<"CurrentIndex row()" << pTableView->selectionModel()->currentIndex().row();
+    //qDebug()<<"CurrentIndex row()" << pTableView->selectionModel()->currentIndex().row();
     //Check status
     QModelIndex selIndex = pTableView->selectionModel()->currentIndex();
     int idxRow = selIndex.row();
 
     QString subStatus = pModel->index(idxRow,11).data().toString();
-    qDebug()<<"Status:" << subStatus;
+    //qDebug()<<"Status:" << subStatus;
 
     if(subStatus == "ON")
     {

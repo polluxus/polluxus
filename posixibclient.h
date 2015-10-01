@@ -16,7 +16,7 @@
 class EPosixClientSocket;
 struct Tick;
 struct Depth;
-struct TickerData;
+struct ContractInfo;
 
 enum State {
     ST_CONNECT,
@@ -71,7 +71,7 @@ signals:
     void BBidUpdating(const Depth &depth);
     void BAskUpdating(const Depth &depth);
 
-    void ContractDetailUpdating(const TickerData &tickerData);
+    void ContractDetailUpdating(const ContractInfo &contractInfo);
 
     void AdjustTimeDiff(qint64 timeDiffMS);
 

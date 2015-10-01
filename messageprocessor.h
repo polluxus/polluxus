@@ -19,7 +19,7 @@ private:
     {
         while (pIBClient->isConnected())
         {
-            //qDebug() << "MessageProcessor: start() from " << QThread::currentThreadId();
+            //qDebug() << "MessageProcessor: start() in thread: " << QThread::currentThreadId();
             pIBClient->processMessages();
         }
         //for some reason, data feed connect not available

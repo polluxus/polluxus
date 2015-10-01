@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setOrganizationName("Polluxus");
     QCoreApplication::setOrganizationDomain("polluxuscapital.com");
-    QCoreApplication::setApplicationName("ptrader");
+    QCoreApplication::setApplicationName("Polluxus");
 
     PolluxusMain polluxusMain;
 
