@@ -86,17 +86,18 @@ QVariant ContractManagerModel::headerData(int section, Qt::Orientation orientati
 
 bool ContractManagerModel::setData(const QModelIndex & index, const QVariant & value, int role)
 {
-    if (role == Qt::EditRole && index.column()==0 )
+    if (role == Qt::EditRole && (index.column()==0 || index.column()==1) )
     {
         //save value from editor to member m_gridData
         if(value.toString().trimmed() != "")   mGridData[mKeyList[index.row()]][index.column()]= value.toString();
     }
+
     return true;
 }
 
 Qt::ItemFlags ContractManagerModel::flags(const QModelIndex &index) const
 {
-    if (index.column()==0 )
+    if (index.column()==0 || index.column()==1)
         return Qt::ItemIsEditable | QAbstractTableModel::flags(index);
     else
         return QAbstractTableModel::flags(index);
@@ -116,6 +117,8 @@ void ContractManagerModel::onTickUpdating(const Tick &tick)
         QModelIndex indexRight = createIndex(row,6);
 
         emit dataChanged(indexLeft, indexRight);
+
+
     }
 
 }

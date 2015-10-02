@@ -57,9 +57,9 @@ private:
     int clientId;
 
     QPushButton *btnNewOrderBookWidget;
-
     QPushButton *btnTest;
     QPushButton *btnConnect;
+
     QLabel *lbLight;
 
     PolluxusLogger *pLogger;

@@ -147,23 +147,31 @@ void ContractManagerView::onCustomMenuRequested(QPoint pos)
 
 void ContractManagerView::onAtnSubscribeTriggered()
 {
-    //QModelIndex index = pTableView->indexAt(pContextMenu->pos());
-    //qDebug()<<"CurrentIndex row()" << pTableView->selectionModel()->currentIndex().row();
     //Check status
     QModelIndex selIndex = pTableView->selectionModel()->currentIndex();
     int idxRow = selIndex.row();
 
+
+    QString contractId = pModel->index(idxRow,0).data().toString();
+    QString exchange = pModel->index(idxRow,1).data().toString();
     QString subStatus = pModel->index(idxRow,11).data().toString();
-    //qDebug()<<"Status:" << subStatus;
+
+    qDebug()<<"contractId:"<<contractId<<"exchange:"<< exchange <<"Status:" << subStatus;
 
     if(subStatus == "ON")
     {
-
+        emit UnsubscribeMktData(contractId);
     }
+
     else
     {
-
+        emit SubscribeMktData(contractId, exchange);
     }
+
+    pModel->mGridData[contractId][11] = (subStatus=="ON" ? "OFF" : "ON");
+    emit pModel->dataChanged(pModel->index(idxRow,11), pModel->index(idxRow,11));
+
+
 }
 
 

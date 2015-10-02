@@ -4,6 +4,7 @@
 #include <QObject>
 
 struct ContractInfo;
+struct Tick;
 
 
 class ContractManager : public QObject
@@ -14,10 +15,22 @@ public:
     virtual ~ContractManager();
 
     QThread *pThread;
+
 signals:
-    void SubscribeMarketData(QString contractId, QString exchange);
+    void ReqMktData(QString contractId, QString exchange);
+    void ReqMktDepth(QString contractId, QString exchange);
+    void CancelMktData(QString contractId);
+    void CancelMktDepth(QString contractId);
+
 public slots:
+    void onTickUpdating(const Tick &tick);
     void onContractDetailUpdating(const ContractInfo &contractInfo);
+
+    void onSubscribeMktData(QString contractId, QString exchange);
+    void onSubscribeMktDepth(QString contractId, QString exchange);
+    void onUnsubscribeMktData(QString contractId);
+    void onUnsubscribeMktDepth(QString contractId);
+
     void test1();
     void test2();
 };

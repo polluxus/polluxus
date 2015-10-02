@@ -42,7 +42,11 @@ public:
     QSettings *wsSettings;
 
 signals:
-    void SubscribeMarketData(QString contractId);
+    void SubscribeMktData(QString contractId, QString exchange);
+    void SubscribeMktDepth(QString contractId, QString exchange);
+    void UnsubscribeMktData(QString contractId);
+    void UnsubscribeMktDepth(QString contractId);
+
 public slots:
     void onTickUpdating(const Tick &tick);
     void onCustomMenuRequested(QPoint pos);

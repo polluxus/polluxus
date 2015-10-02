@@ -76,9 +76,17 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     connect(pIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
     connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManagerView, SLOT(onTickUpdating(const Tick)));
     connect(pIBAdapter, SIGNAL(ContractDetailUpdating(const ContractInfo)), pContractManager, SLOT(onContractDetailUpdating(const ContractInfo)));
+    connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManager, SLOT(onTickUpdating(const Tick)));
+
+    connect(pContractManager, SIGNAL(ReqMktData(QString,QString)), pIBAdapter, SLOT(onReqMktData(QString,QString)));
+    connect(pContractManager, SIGNAL(CancelMktData(QString)), pIBAdapter, SLOT(onCancelMktData(QString)));
+
+    connect(pContractManagerView, SIGNAL(SubscribeMktData(QString,QString)),   pContractManager, SLOT(onSubscribeMktData(QString,QString)));
+    connect(pContractManagerView, SIGNAL(SubscribeMktDepth(QString, QString)), pContractManager, SLOT(onSubscribeMktDepth(QString,QString)));
+    connect(pContractManagerView, SIGNAL(UnsubscribeMktData(QString)),   pContractManager, SLOT(onUnsubscribeMktData(QString)));
+    connect(pContractManagerView, SIGNAL(UnsubscribeMktDepth(QString)),  pContractManager, SLOT(onUnsubscribeMktDepth(QString)));
 
     loadWorkSpace();
-
 
     qRegisterMetaType<Tick>("Tick");
     qRegisterMetaType<Tick>("Tick&");
@@ -89,7 +97,6 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     qRegisterMetaType<OrderBook>("OrderBook");
     qRegisterMetaType<OrderBook>("OrderBook&");
 
-    qDebug()<<this->rect().topLeft();
 }
 
 PolluxusMain::~PolluxusMain()
@@ -182,14 +189,11 @@ void PolluxusMain::createToolBar()
 
     btnNewOrderBookWidget = new QPushButton("New OrderBook");
     btnTest = new QPushButton(tr("test"));
-
     btnConnect = new QPushButton(tr("Connect"));
+
     btnConnect->setCheckable(true);
 
-
     pClock = new DigitalClock(this);
-
-
 
     lbLight = new QLabel();
     lbLight->setFixedWidth(24);
