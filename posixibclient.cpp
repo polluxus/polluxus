@@ -25,20 +25,21 @@ PosixIBClient::PosixIBClient(QObject *parent) : QObject(parent) //QObject *paren
 
     nextValidUId = static_cast<long int> (time(NULL));
 
-    pThread.reset(new QThread);
-    pThread->start();
-    this->moveToThread(pThread.get());
+    pClient = new EPosixClientSocket(this);
 
-    pClient.reset(new EPosixClientSocket(this));
+    pThread = new QThread;
+    pThread->start();
+    moveToThread(pThread);
+
+
 }
 
 PosixIBClient::~PosixIBClient()
 {
-    pClient.release();
+    if(!pClient) delete pClient;
     pThread->exit( 0 );
     pThread->wait();
-    pThread.release();
-
+    delete pThread;
 }
 
 long PosixIBClient::getNextValidUId()
@@ -229,16 +230,8 @@ void PosixIBClient::processMessages()
 void PosixIBClient::onTest()
 {
 
-    //qDebug() << "Placing order ....";
-    //placeOrder();
-
-//    contract.symbol = "ES";
-//    contract.secType = "FUT";
-//    contract.exchange = "GLOBEX";
-//    contract.expiry = "201512";
-//	  contract.currency = "USD";
-
-    qDebug() << "IBClient onTest():  ES FUT 201512....";
+    qDebug() << "PosixIBClient::onTest() in thread: " << QThread::currentThreadId();
+    qDebug() << "PosixIBClient::onTest():  ES FUT 201512....";
 
     QString contractId = "167205842";
     QString exchange = "GLOBEX";
@@ -249,25 +242,25 @@ void PosixIBClient::onTest()
 
     if(conIdTickMap.contains(contractId))
     {
-        qDebug() << "IBClient onTest: cancelMktData ES 201512";
+        qDebug() << "PosixIBClient::onTest: cancelMktData ES 201512";
         onCancelMktData(contractId);
     }
     else
     {
-        qDebug() << "IBClient onTest: reqMktData ES 201512";
+        qDebug() << "PosixIBClient::onTest: reqMktData ES 201512";
         onReqMktData(contractId, exchange);
     }
 
-    if(conIdDepthMap.contains(contractId))
-    {
-        qDebug() << "IBClient onTest: onCancelMktDepth ES 201512";
-        onCancelMktDepth(contractId);
-    }
-    else
-    {
-        qDebug() << "IBClient onTest: onCancelMktDepth ES 201512";
-        onReqMktDepth(contractId, exchange);
-    }
+//    if(conIdDepthMap.contains(contractId))
+//    {
+//        qDebug() << "IBClient onTest: onCancelMktDepth ES 201512";
+//        onCancelMktDepth(contractId);
+//    }
+//    else
+//    {
+//        qDebug() << "IBClient onTest: onCancelMktDepth ES 201512";
+//        onReqMktDepth(contractId, exchange);
+//    }
 
 
 }
@@ -462,6 +455,7 @@ void PosixIBClient::tickOptionComputation( TickerId tickerId, TickType tickType,
 void PosixIBClient::tickGeneric(TickerId tickerId, TickType tickType, double value) {}
 void PosixIBClient::tickString(TickerId tickerId, TickType tickType, const IBString& value)
 {
+    qDebug() << "PosixIBClient: tickString() in thread: " << QThread::currentThreadId();
     //use tickType = 45 to update timeDiffMS
 //    if(tickType == 45)
 //    {

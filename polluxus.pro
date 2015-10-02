@@ -71,4 +71,5 @@ RESOURCES += \
     ../resources/resources.qrc
 
 DISTFILES += \
-    workspace.ini
+    workspace.ini \
+    readme.txt

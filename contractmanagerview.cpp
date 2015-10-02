@@ -10,8 +10,12 @@
 #include <QMenu>
 #include <QAction>
 
+
 ContractManagerView::ContractManagerView(QWidget *parent) : QWidget(parent)
 {
+    iniFileString = QDir::currentPath() + "/workspace.ini";
+    wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
+
     setWindowFlags(Qt::Window);
     setWindowTitle("ContractManager");
 
@@ -49,6 +53,8 @@ ContractManagerView::ContractManagerView(QWidget *parent) : QWidget(parent)
 ContractManagerView::~ContractManagerView()
 {
     saveWorkSpace();
+    if(!pModel) delete pModel;
+    if(!wsSettings) delete wsSettings;
 }
 
 void ContractManagerView::createToolBar()
@@ -80,13 +86,6 @@ void ContractManagerView::saveWorkSpace()
     //qDebug() << "pos():" << pos();
     //qDebug() << "FrameGeo:" << this->frameGeometry();
 
-
-
-
-    QString iniFileString = QDir::currentPath() + "/workspace.ini";
-
-    QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
-
     wsSettings->beginGroup("contractmanager");
     wsSettings->setValue("geometry", saveGeometry());
     wsSettings->setValue( "maximized", isMaximized());
@@ -102,11 +101,6 @@ void ContractManagerView::saveWorkSpace()
 void ContractManagerView::loadWorkSpace()
 {
     //qDebug() << "ContractManagerView::loadWorkSpace()";
-
-
-    QString iniFileString = QDir::currentPath() + "/workspace.ini";
-
-    QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
     wsSettings->beginGroup("contractmanager");
     restoreGeometry(wsSettings->value( "geometry", saveGeometry() ).toByteArray());

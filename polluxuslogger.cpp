@@ -3,6 +3,8 @@
 PolluxusLogger::PolluxusLogger(QWidget *parent) : QWidget(parent)
 {
 
+    iniFileString = QDir::currentPath() + "/workspace.ini";
+    wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
     setWindowFlags(Qt::Window);
     setWindowTitle("Log");
@@ -28,6 +30,7 @@ PolluxusLogger::PolluxusLogger(QWidget *parent) : QWidget(parent)
 PolluxusLogger::~PolluxusLogger()
 {
     saveWorkSpace();
+    if(!wsSettings) delete wsSettings;
 }
 
 
@@ -69,9 +72,6 @@ void PolluxusLogger::onOrderUpdated(QString msg)
 void PolluxusLogger::saveWorkSpace()
 {
     qDebug() << "PolluxusLogger::saveWorkSpace";
-    QString iniFileString = QDir::currentPath() + "/workspace.ini";
-
-    QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
     wsSettings->beginGroup("polluxuslogger");
     wsSettings->setValue("geometry", saveGeometry());
@@ -88,9 +88,6 @@ void PolluxusLogger::saveWorkSpace()
 void PolluxusLogger::loadWorkSpace()
 {
     qDebug() << "loadWorkSpace";
-    QString iniFileString = QDir::currentPath() + "/workspace.ini";
-
-    QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
     wsSettings->beginGroup("polluxuslogger");
     restoreGeometry(wsSettings->value( "geometry", saveGeometry() ).toByteArray());

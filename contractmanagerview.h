@@ -11,6 +11,8 @@ class QToolBar;
 class QPushButton;
 class QMenu;
 class QAction;
+class QSettings;
+
 
 class ContractManagerView : public QWidget
 {
@@ -35,6 +37,9 @@ public:
     QAction *pAtnSubscribe;
     QAction *pAtnDelete;
     QAction *pAtnDetail;
+
+    QString iniFileString;
+    QSettings *wsSettings;
 
 signals:
     void SubscribeMarketData(QString contractId);

@@ -20,6 +20,10 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     m_nMouseClick_X_Coordinate = 0;
     m_nMouseClick_Y_Coordinate = 0;
 
+    iniFileString = QDir::currentPath() + "/workspace.ini";
+    wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
+
+
     loadGateway();
 
     QLabel *pLogo = new QLabel();
@@ -48,10 +52,9 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     adjustTopBarPosition();
 
 
-    pIBAdapter = new PosixIBClient;
+    pIBAdapter = new PosixIBClient();
 
-    std::shared_ptr<PosixIBClient> pIBClient(pIBAdapter);
-    pMsgProcessor = new MessageProcessor(pIBClient);
+    pMsgProcessor = new MessageProcessor(pIBAdapter);
 
     connect(pIBAdapter, SIGNAL(AdapterConnected()), this, SLOT(onAdapterConnected()));
     connect(pIBAdapter, SIGNAL(AdapterDisconnected()), this, SLOT(onAdapterDisconnected()));
@@ -93,6 +96,12 @@ PolluxusMain::~PolluxusMain()
 {
 
     saveWorkSpace();
+    if(!pIBAdapter) delete pIBAdapter;
+    if(!wsSettings) delete wsSettings;
+    if(!pContractManager) delete pContractManager;
+    if(!pContractManagerView) delete pContractManagerView;
+    if(!pLogger) delete pLogger;
+    if(!pMsgProcessor) delete pMsgProcessor;
 }
 
 
@@ -147,10 +156,12 @@ void PolluxusMain::createMenuBar()
 
     QMenu *trading;
     trading = pMenuBar->addMenu("&Trading");
+    trading->addSeparator();
 
 
     QMenu *about;
     about = pMenuBar->addMenu("&About");
+    about->addSeparator();
 
 
     pMenuBar->addSeparator();
@@ -294,8 +305,6 @@ void PolluxusMain::onAdapterDisconnected()
 void PolluxusMain::saveWorkSpace()
 {
     //qDebug() << "PolluxusMain::saveWorkSpace";
-    QString iniFileString = QDir::currentPath() + "/workspace.ini";
-    QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
     wsSettings->setValue("appname", "Polluxus");
 
@@ -313,9 +322,6 @@ void PolluxusMain::saveWorkSpace()
 void PolluxusMain::loadGateway()
 {
     //qDebug() << "PolluxusMain::loadGateway";
-    QString iniFileString = QDir::currentPath() + "/workspace.ini";
-
-    QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
     wsSettings->beginGroup("Gateway");
     host = wsSettings->value( "host", "127.0.0.1").toString();
@@ -327,9 +333,6 @@ void PolluxusMain::loadGateway()
 void PolluxusMain::loadWorkSpace()
 {
     //qDebug() << "PolluxusMain::loadWorkSpace";
-    QString iniFileString = QDir::currentPath() + "/workspace.ini";
-
-    QSettings *wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
     wsSettings->beginGroup("PolluxusMain");
     restoreGeometry(wsSettings->value( "geometry", saveGeometry() ).toByteArray());

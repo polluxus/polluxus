@@ -17,6 +17,9 @@ public:
     void loadWorkSpace();
     void saveWorkSpace();
 
+    QString iniFileString;
+    QSettings *wsSettings;
+
 private:
     QFile m_logFile;
 

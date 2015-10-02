@@ -15,6 +15,7 @@ class PolluxusLogger;
 class DigitalClock;
 class ContractManager;
 class ContractManagerView;
+class QSettings;
 
 class PolluxusMain : public QWidget
 {
@@ -33,6 +34,10 @@ public:
 
 
 public:
+
+    QString iniFileString;
+    QSettings *wsSettings;
+
     void saveWorkSpace();
     void loadWorkSpace();
     void loadGateway();

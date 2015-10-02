@@ -10,13 +10,14 @@ class MessageProcessor : public QThread
 {
     Q_OBJECT
 public:
-    MessageProcessor(std::shared_ptr<PosixIBClient> pIBClient, QObject *parent = 0);
+    MessageProcessor(PosixIBClient *pIBClient, QObject *parent = 0);
     ~MessageProcessor();
 public slots:
 
 private:
     void run()
     {
+        qDebug() << "MessageProcessor: start() in thread: " << QThread::currentThreadId();
         while (pIBClient->isConnected())
         {
             //qDebug() << "MessageProcessor: start() in thread: " << QThread::currentThreadId();
@@ -27,7 +28,7 @@ private:
     }
 
 private:
-    std::shared_ptr<PosixIBClient> pIBClient;
+    PosixIBClient *pIBClient;
 };
 
 #endif // MESSAGEPROCESSOR_H

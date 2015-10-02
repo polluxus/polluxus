@@ -162,10 +162,8 @@ public:
 
 private:
 
-    //use unique_ptr for release version, in qt unique_ptr makes code assistance disappeared
-
-    std::auto_ptr<EPosixClientSocket> pClient;
-    std::auto_ptr<QThread> pThread;
+    EPosixClientSocket *pClient;
+    QThread *pThread;
     State state;
     time_t sleepDeadline;
 
