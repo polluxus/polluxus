@@ -16,6 +16,7 @@ class DigitalClock;
 class ContractManager;
 class ContractManagerView;
 class QSettings;
+class DbManager;
 
 class PolluxusMain : public QWidget
 {
@@ -41,6 +42,7 @@ public:
     void saveWorkSpace();
     void loadWorkSpace();
     void loadGateway();
+    void loadDbPath();
 
 private:
 
@@ -66,6 +68,8 @@ private:
     DigitalClock *pClock;
     ContractManagerView *pContractManagerView;
     ContractManager *pContractManager;
+    DbManager *pDbManager;
+    QString dbPath;
 
     void createMenuBar();
     void createToolBar();

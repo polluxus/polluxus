@@ -11,6 +11,7 @@
 #include "contractmanager.h"
 #include "contractmanagerview.h"
 #include "orderbookwidget.h"
+#include "dbmanager.h"
 
 
 PolluxusMain::PolluxusMain(QWidget *parent) :
@@ -23,7 +24,7 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     iniFileString = QDir::currentPath() + "/workspace.ini";
     wsSettings = new QSettings(iniFileString, QSettings::IniFormat);
 
-
+    loadDbPath();
     loadGateway();
 
     QLabel *pLogo = new QLabel();
@@ -71,6 +72,8 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     pContractManagerView = new ContractManagerView(this);
     pContractManagerView->show();
 
+    pDbManager = new DbManager(dbPath);
+
     QMetaObject::invokeMethod( pContractManager, "test1", Qt::QueuedConnection );
 
     connect(pIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
@@ -86,6 +89,10 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     connect(pContractManagerView, SIGNAL(UnsubscribeMktData(QString)),   pContractManager, SLOT(onUnsubscribeMktData(QString)));
     connect(pContractManagerView, SIGNAL(UnsubscribeMktDepth(QString)),  pContractManager, SLOT(onUnsubscribeMktDepth(QString)));
 
+    connect(pDbManager, SIGNAL(ContractRetrieved(QMap<QString,QStringList>)), pContractManagerView->pModel, SLOT(onContractRetrieved(QMap<QString,QStringList>)));
+    connect(pDbManager, SIGNAL(ContractRetrieved(QMap<QString,QStringList>)), pContractManager, SLOT(onContractRetrieved(QMap<QString,QStringList>)));
+
+
     loadWorkSpace();
 
     qRegisterMetaType<Tick>("Tick");
@@ -96,6 +103,10 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     qRegisterMetaType<ContractInfo>("ContractInfo&");
     qRegisterMetaType<OrderBook>("OrderBook");
     qRegisterMetaType<OrderBook>("OrderBook&");
+    qRegisterMetaType<QMap<QString,QStringList>>("QMap<QString,QStringList>");
+    qRegisterMetaType<QMap<QString,QStringList>>("QMap<QString,QStringList>&");
+
+    QMetaObject::invokeMethod(pDbManager, "onRetrieveContract", Qt::QueuedConnection);
 
 }
 
@@ -109,6 +120,7 @@ PolluxusMain::~PolluxusMain()
     if(!pContractManagerView) delete pContractManagerView;
     if(!pLogger) delete pLogger;
     if(!pMsgProcessor) delete pMsgProcessor;
+    if(!pDbManager) delete pDbManager;
 }
 
 
@@ -237,7 +249,23 @@ void PolluxusMain::adjustTopBarPosition()
 
 void PolluxusMain::onTest()
 {
-    QMetaObject::invokeMethod(pIBAdapter, "onTest", Qt::QueuedConnection);
+    //QMetaObject::invokeMethod(pIBAdapter, "onTest", Qt::QueuedConnection);
+
+    if (pDbManager->isOpen())
+    {
+
+        pDbManager->printAllContracts();
+
+//        db.addContract("167205842", "GLOBEX", "ES", "FUT" ,"201512", "1", "50.0");
+//        db.addContract("167205847", "GLOBEX", "NQ", "FUT", "201512", "1", "50.0");
+//        db.addContract("167205848", "GLOBEX", "YM", "FUT", "201512", "1", "50.0");
+        //db.printAllContracts();
+
+    }
+    else
+    {
+        qDebug() << "Database is not open!";
+    }
 
 }
 
@@ -331,6 +359,15 @@ void PolluxusMain::loadGateway()
     host = wsSettings->value( "host", "127.0.0.1").toString();
     port = wsSettings->value( "port", 4001).toInt();
     clientId = wsSettings->value( "clientId", 1).toInt();
+    wsSettings->endGroup();
+}
+
+void PolluxusMain::loadDbPath()
+{
+    qDebug() << "PolluxusMain::loadDbPath";
+
+    wsSettings->beginGroup("Database");
+    dbPath = wsSettings->value("dbpath", "").toString();
     wsSettings->endGroup();
 }
 

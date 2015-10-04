@@ -506,22 +506,22 @@ void PosixIBClient::accountDownloadEnd(const IBString& accountName) {}
 void PosixIBClient::contractDetails(int reqId, const ContractDetails& contractDetails)
 {
 
-    qDebug() << "conId:" << QString::number(contractDetails.summary.conId)
-             <<", exch:" << QString::fromStdString(contractDetails.summary.exchange)
-             <<", expiry:" << QString::fromStdString(contractDetails.summary.expiry);
+//    qDebug() << "conId:" << QString::number(contractDetails.summary.conId)
+//             <<", exch:" << QString::fromStdString(contractDetails.summary.exchange)
+//             <<", expiry:" << QString::fromStdString(contractDetails.summary.expiry);
 
-    ContractInfo contractInfo;
-    contractInfo.contractId = QString::number(contractDetails.summary.conId);
-    contractInfo.symbol = QString::fromStdString(contractDetails.summary.symbol);
-    contractInfo.secType = QString::fromStdString(contractDetails.summary.secType);
-    contractInfo.exchange = QString::fromStdString(contractDetails.summary.exchange);
-    contractInfo.primaryExchange = QString::fromStdString(contractDetails.summary.primaryExchange);
-    contractInfo.expiry = QString::fromStdString(contractDetails.summary.expiry);
-    contractInfo.currency = QString::fromStdString(contractDetails.summary.currency);
+//    ContractInfo contractInfo;
+//    contractInfo.contractId = QString::number(contractDetails.summary.conId);
+//    contractInfo.symbol = QString::fromStdString(contractDetails.summary.symbol);
+//    contractInfo.secType = QString::fromStdString(contractDetails.summary.secType);
+//    contractInfo.exchange = QString::fromStdString(contractDetails.summary.exchange);
+//    contractInfo.primaryExchange = QString::fromStdString(contractDetails.summary.primaryExchange);
+//    contractInfo.expiry = QString::fromStdString(contractDetails.summary.expiry);
+//    contractInfo.currency = QString::fromStdString(contractDetails.summary.currency);
 
-    contractInfo.minTick = contractDetails.minTick;
+//    contractInfo.minTick = contractDetails.minTick;
 
-    emit ContractDetailUpdating(contractInfo);
+//    emit ContractDetailUpdating(contractInfo);
 
 
 }

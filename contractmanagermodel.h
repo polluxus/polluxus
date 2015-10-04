@@ -18,6 +18,8 @@ public:
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
     Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE ;
 
+
+
     QMap<QString, QStringList> mGridData;
     QList<QString> mKeyList;
 
@@ -25,6 +27,7 @@ signals:
 
 public slots:
     void onTickUpdating(const Tick &tick);
+    void onContractRetrieved(QMap<QString, QStringList> mapContract);
 
 };
 

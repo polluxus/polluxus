@@ -1,20 +1,10 @@
 #include "contractmanagermodel.h"
+#include <QDebug>
+#include <QDateTime>
 
 ContractManagerModel::ContractManagerModel(QObject *parent)
     :QAbstractTableModel(parent)
 {
-
-    QStringList tmpStrList1;
-    tmpStrList1<<"167205842"<<"GLOBEX"<<"ES"<<"FUT"<<"201512"<<"1980.5"<<"2"<<"120"<<"1960.5"<<"1990.25"<<"110"<<"OFF";
-
-    QStringList tmpStrList2;
-    tmpStrList2<<"167205847"<<"GLOBEX"<<"NQ"<<"FUT"<<"201512"<<"123.5"<<"6"<<"28"<<"120.5"<<"125.0"<<"90"<<"OFF";
-
-    mGridData["167205842"] = tmpStrList1;
-    mGridData["167205847"] = tmpStrList2;
-
-    mKeyList.append("167205842");
-    mKeyList.append("167205847");
 
 }
 
@@ -25,7 +15,7 @@ int ContractManagerModel::rowCount(const QModelIndex & /*parent*/) const
 
 int ContractManagerModel::columnCount(const QModelIndex & /*parent*/) const
 {
-    return 12;
+    return 15;
 }
 
 QVariant ContractManagerModel::data(const QModelIndex &index, int role) const
@@ -77,7 +67,12 @@ QVariant ContractManagerModel::headerData(int section, Qt::Orientation orientati
                 return QString("AskSz");
             case 11:
                 return QString("Status");
-
+            case 12:
+                return QString("TimeStamp");
+            case 13:
+                return QString("LotSize");
+            case 14:
+                return QString("Multiplier");
             }
         }
     }
@@ -86,22 +81,79 @@ QVariant ContractManagerModel::headerData(int section, Qt::Orientation orientati
 
 bool ContractManagerModel::setData(const QModelIndex & index, const QVariant & value, int role)
 {
-    if (role == Qt::EditRole && (index.column()==0 || index.column()==1) )
+
+    int idxRow = index.row();
+    int idxCol = index.column();
+    int nRow = rowCount();
+
+    QString strValue = value.toString().trimmed();
+    QString contractId = this->index(idxRow, 0).data().toString().trimmed();
+    QString exchange = this->index(idxRow, 1).data().toString().trimmed();
+
+    if (role == Qt::EditRole && idxCol==0 && idxRow == nRow - 1 )
     {
-        //save value from editor to member m_gridData
-        if(value.toString().trimmed() != "")   mGridData[mKeyList[index.row()]][index.column()]= value.toString();
+        if(!mKeyList.contains(strValue) && strValue != "")
+        {
+
+            //newline
+            mKeyList.append(strValue);
+
+            QStringList tmpStrList;
+            tmpStrList<<strValue<<""<<""<<""<<""<<""<<""<<""<<""<<""<<""<<"OFF"<<""<<""<<"";
+            mGridData[strValue] = tmpStrList;
+
+            emit dataChanged(createIndex(idxRow,0),createIndex(idxRow,14));
+            emit layoutChanged();
+            return true;
+
+        }
     }
+
+    if(role == Qt::EditRole && index.column() == 1)
+    {
+        if(mKeyList.contains(contractId) && strValue != "")
+        {
+
+            mGridData[contractId][1] = strValue;
+            QModelIndex indexExch = createIndex(idxRow, 1);
+
+            emit dataChanged(indexExch, indexExch);
+            return true;
+
+        }
+
+    }
+
 
     return true;
 }
 
 Qt::ItemFlags ContractManagerModel::flags(const QModelIndex &index) const
 {
-    if (index.column()==0 || index.column()==1)
+    int idxRow = index.row();
+    int idxCol = index.column();
+    int nRow = rowCount();
+
+    QString contractId = this->index(idxRow, 0).data().toString().trimmed();
+    QString exchange = this->index(idxRow, 1).data().toString().trimmed();
+
+    if (idxCol == 0 && idxRow == nRow-1) //first column and last empty row
+    {
+
         return Qt::ItemIsEditable | QAbstractTableModel::flags(index);
+    }
+    else if(idxCol == 1 && contractId != "" && exchange=="" && idxRow != nRow-1)
+    {
+        return Qt::ItemIsEditable | QAbstractTableModel::flags(index);
+    }
     else
+    {
         return QAbstractTableModel::flags(index);
+    }
 }
+
+
+
 
 void ContractManagerModel::onTickUpdating(const Tick &tick)
 {
@@ -111,14 +163,45 @@ void ContractManagerModel::onTickUpdating(const Tick &tick)
     {
         mGridData[contractId][5] = tick.price;
         mGridData[contractId][6] = tick.size;
+        mGridData[contractId][12] = QDateTime::fromMSecsSinceEpoch(tick.timeStamp.toLongLong()).toString("hh:mm:ss.zzz");
 
         int row = mKeyList.indexOf(contractId);
         QModelIndex indexLeft = createIndex(row,5);
         QModelIndex indexRight = createIndex(row,6);
+        QModelIndex indexTime = createIndex(row,12);
 
         emit dataChanged(indexLeft, indexRight);
+        emit dataChanged(indexTime, indexTime);
 
 
+    }
+
+}
+
+void ContractManagerModel::onContractRetrieved(QMap<QString, QStringList> mapContract)
+{
+    int nContracts = mapContract.size();
+    if(nContracts > 0)
+    {
+        int idx;
+        mGridData.clear();
+        mKeyList.clear();
+        mKeyList = mapContract.keys();
+
+        for(idx = 0; idx < nContracts; idx++)
+        {
+            QString contractId = mKeyList[idx];
+            QStringList tmpStrList;
+            tmpStrList << mapContract[contractId][0] << mapContract[contractId][1]    //contractId, exchange
+                       << mapContract[contractId][2] << mapContract[contractId][3]    //symbol, secType
+                       << mapContract[contractId][4]                                   //expiry,
+                       << "" << "" << "" << "" << "" << ""                            //lastPx, lastSz, bidSz, bid,ask, askSize
+                       << "OFF" <<""                                                  //status,timeStamp;
+                       << mapContract[contractId][5] << mapContract[contractId][6];   //lotSize, multiplier
+
+            mGridData[contractId] = tmpStrList;
+        }
+        emit layoutChanged();
     }
 
 }

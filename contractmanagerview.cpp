@@ -19,7 +19,7 @@ ContractManagerView::ContractManagerView(QWidget *parent) : QWidget(parent)
     setWindowFlags(Qt::Window);
     setWindowTitle("ContractManager");
 
-    createToolBar();
+    //createToolBar();
 
 
     pTableView = new QTableView();
@@ -42,6 +42,7 @@ ContractManagerView::ContractManagerView(QWidget *parent) : QWidget(parent)
     pTableView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(pTableView, SIGNAL(customContextMenuRequested(QPoint)), SLOT(onCustomMenuRequested(QPoint)));
 
+
     pTableView->show();
 
     createContextMenu();
@@ -62,6 +63,8 @@ void ContractManagerView::createToolBar()
     pToolBar = new QToolBar;
     btnSubscribe = new QPushButton(tr("Subscribe"));
     pToolBar->addWidget(btnSubscribe);
+
+    connect(btnSubscribe, SIGNAL(clicked(bool)), this, SLOT(onTest()));
 }
 
 void ContractManagerView::createContextMenu()
@@ -77,7 +80,6 @@ void ContractManagerView::createContextMenu()
     pContextMenu->addAction(pAtnDelete);
 
     connect(pAtnSubscribe,SIGNAL(triggered()), this, SLOT(onAtnSubscribeTriggered()));
-
 }
 
 void ContractManagerView::saveWorkSpace()
@@ -171,6 +173,11 @@ void ContractManagerView::onAtnSubscribeTriggered()
     pModel->mGridData[contractId][11] = (subStatus=="ON" ? "OFF" : "ON");
     emit pModel->dataChanged(pModel->index(idxRow,11), pModel->index(idxRow,11));
 
+
+}
+
+void ContractManagerView::onTest()
+{
 
 }
 

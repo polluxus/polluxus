@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,7 +28,8 @@ SOURCES += main.cpp\
     orderbookwidget.cpp \
     runguard.cpp \
     contractmanagerview.cpp \
-    contractmanager.cpp
+    contractmanager.cpp \
+    dbmanager.cpp
 
 HEADERS  += polluxusmain.h \
     tws/Shared/CommissionReport.h \
@@ -58,7 +60,8 @@ HEADERS  += polluxusmain.h \
     orderbookwidget.h \
     runguard.h \
     contractmanagerview.h \
-    contractmanager.h
+    contractmanager.h \
+    dbmanager.h
 
 
 INCLUDEPATH += tws/src \

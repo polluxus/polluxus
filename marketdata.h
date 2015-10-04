@@ -39,6 +39,8 @@ struct ContractInfo
     int lotSize;
     double minTick;
     double multiplier;
+    QString mktDataStatus = "OFF";
+    QString mktDepthStatus = "OFF";
 };
 
 struct OrderBook
