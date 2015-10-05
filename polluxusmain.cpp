@@ -106,6 +106,11 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     qRegisterMetaType<QMap<QString,QStringList>>("QMap<QString,QStringList>");
     qRegisterMetaType<QMap<QString,QStringList>>("QMap<QString,QStringList>&");
 
+    qRegisterMetaType<PairOrder>("PairOrder");
+    qRegisterMetaType<PairOrder>("PairOrder&");
+    qRegisterMetaType<VanillaTrade>("VanillaTrade");
+    qRegisterMetaType<VanillaTrade>("VanillaTrade&");
+
     QMetaObject::invokeMethod(pDbManager, "onRetrieveContract", Qt::QueuedConnection);
 
 }
@@ -249,23 +254,22 @@ void PolluxusMain::adjustTopBarPosition()
 
 void PolluxusMain::onTest()
 {
-    //QMetaObject::invokeMethod(pIBAdapter, "onTest", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(pIBAdapter, "onReqAccountUpdates", Qt::QueuedConnection);
 
-    if (pDbManager->isOpen())
-    {
+//    if (pDbManager->isOpen())
+//    {
 
-        pDbManager->printAllContracts();
+//        pDbManager->printAllContracts();
 
 //        db.addContract("167205842", "GLOBEX", "ES", "FUT" ,"201512", "1", "50.0");
-//        db.addContract("167205847", "GLOBEX", "NQ", "FUT", "201512", "1", "50.0");
-//        db.addContract("167205848", "GLOBEX", "YM", "FUT", "201512", "1", "50.0");
-        //db.printAllContracts();
 
-    }
-    else
-    {
-        qDebug() << "Database is not open!";
-    }
+//        //db.printAllContracts();
+
+//    }
+//    else
+//    {
+//        qDebug() << "Database is not open!";
+//    }
 
 }
 

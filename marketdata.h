@@ -58,12 +58,63 @@ struct OrderBook
     QStringList lstAskSz;
 };
 
+struct VanillaOrder
+{
+    QString orderId;
+    QString contractId;
+    QString clientId;
+    QString exchange;
+    QString symbol;
+    QString expiry;
+    QString currency;
+    QString action;
+    QString totalQuantity;
+    QString orderType;
+    QString lmtPrice;
+    QString remainingQuantity;
+    QString createTimeStamp;
+    QString memo;
+};
 
+
+struct PairOrder
+{
+    QString orderId;
+    QString symbol;
+    QString action;
+    QString totalQuantity;
+    QString orderType;
+    QString priority;
+    VanillaOrder *pOrderLeg1;
+    VanillaOrder *pOrderLeg2;
+    QString createTimeStamp;
+    QString memo;
+};
+
+
+struct VanillaTrade
+{
+    QString orderId;
+    QString contractId;
+    QString clientId;
+    QString exchange;
+    QString symbol;
+    QString expiry;
+    QString currency;
+    QString action;
+    QString quantity;
+    QString price;
+    QString tradeTimeStamp;
+    QString memo;
+};
 
 Q_DECLARE_METATYPE(Tick)
 Q_DECLARE_METATYPE(Depth)
 Q_DECLARE_METATYPE(ContractInfo)
 Q_DECLARE_METATYPE(OrderBook)
+Q_DECLARE_METATYPE(VanillaOrder)
+Q_DECLARE_METATYPE(PairOrder)
+Q_DECLARE_METATYPE(VanillaTrade)
 
 #endif // MARKETDATA
 

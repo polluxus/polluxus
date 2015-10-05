@@ -51,6 +51,7 @@ public slots:
     void onTickUpdating(const Tick &tick);
     void onCustomMenuRequested(QPoint pos);
     void onAtnSubscribeTriggered();
+    void onAtnDeleteTriggered();
     void onTest();
 };
 

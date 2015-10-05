@@ -343,6 +343,11 @@ void PosixIBClient::onCancelMktDepth(QString contractId)
     }
 }
 
+void PosixIBClient::onReqAccountUpdates()
+{
+    pClient->reqAccountUpdates(true,"");
+}
+
 
 //////////////////////////////////////////////////////////////////
 // methods
@@ -496,7 +501,15 @@ void PosixIBClient::openOrderEnd() {}
 void PosixIBClient::winError( const IBString &str, int lastError) {}
 void PosixIBClient::connectionClosed(){}
 void PosixIBClient::updateAccountValue(const IBString& key, const IBString& val,
-										  const IBString& currency, const IBString& accountName) {}
+                                          const IBString& currency, const IBString& accountName)
+{
+
+    qDebug() << "key:" << QString::fromStdString(key)
+             << "key:" << QString::fromStdString(val)
+             << "key:" << QString::fromStdString(currency)
+             << "key:" << QString::fromStdString(accountName);
+
+}
 void PosixIBClient::updatePortfolio(const Contract& contract, int position,
 		double marketPrice, double marketValue, double averageCost,
 		double unrealizedPNL, double realizedPNL, const IBString& accountName){}

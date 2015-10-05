@@ -19,7 +19,7 @@ ContractManagerView::ContractManagerView(QWidget *parent) : QWidget(parent)
     setWindowFlags(Qt::Window);
     setWindowTitle("ContractManager");
 
-    //createToolBar();
+    createToolBar();
 
 
     pTableView = new QTableView();
@@ -80,6 +80,7 @@ void ContractManagerView::createContextMenu()
     pContextMenu->addAction(pAtnDelete);
 
     connect(pAtnSubscribe,SIGNAL(triggered()), this, SLOT(onAtnSubscribeTriggered()));
+    connect(pAtnDelete,SIGNAL(triggered()), this, SLOT(onAtnDeleteTriggered()));
 }
 
 void ContractManagerView::saveWorkSpace()
@@ -173,6 +174,31 @@ void ContractManagerView::onAtnSubscribeTriggered()
     pModel->mGridData[contractId][11] = (subStatus=="ON" ? "OFF" : "ON");
     emit pModel->dataChanged(pModel->index(idxRow,11), pModel->index(idxRow,11));
 
+
+}
+
+void ContractManagerView::onAtnDeleteTriggered()
+{
+    //Check status
+    QModelIndex selIndex = pTableView->selectionModel()->currentIndex();
+    int idxRow = selIndex.row();
+
+
+    QString contractId = pModel->index(idxRow,0).data().toString();
+    QString exchange = pModel->index(idxRow,1).data().toString();
+    QString subStatus = pModel->index(idxRow,11).data().toString();
+
+    qDebug()<<"contractId:"<<contractId<<"exchange:"<< exchange <<"Status:" << subStatus;
+
+    if(subStatus == "ON")
+    {
+        emit UnsubscribeMktData(contractId);
+    }
+
+    pModel->mGridData.remove(contractId);
+    pModel->mKeyList.removeAll(contractId);
+    pModel->removeRow(idxRow);
+    emit pModel->layoutChanged();
 
 }
 

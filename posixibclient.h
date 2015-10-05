@@ -56,6 +56,7 @@ public slots:
     void onCancelMktDepth(QString contractId);
 
     void onProcessMessages();
+    void onReqAccountUpdates();
     void onTest();
 
 signals:

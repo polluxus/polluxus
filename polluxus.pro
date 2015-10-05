@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     runguard.cpp \
     contractmanagerview.cpp \
     contractmanager.cpp \
-    dbmanager.cpp
+    dbmanager.cpp \
+    ordermanager.cpp
 
 HEADERS  += polluxusmain.h \
     tws/Shared/CommissionReport.h \
@@ -61,7 +62,8 @@ HEADERS  += polluxusmain.h \
     runguard.h \
     contractmanagerview.h \
     contractmanager.h \
-    dbmanager.h
+    dbmanager.h \
+    ordermanager.h
 
 
 INCLUDEPATH += tws/src \
