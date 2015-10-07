@@ -3,6 +3,7 @@
 
 #include <QAbstractTableModel>
 #include "marketdata.h"
+#include <QMap>
 
 class ContractManagerModel : public QAbstractTableModel
 {
@@ -18,16 +19,23 @@ public:
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
     Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE ;
 
-
-
     QMap<QString, QStringList> mGridData;
     QList<QString> mKeyList;
 
 signals:
+    void ReqContractInfo(QString symbol);
+
+    void SubscribeMktData(QString symbol);
+    void SubscribeMktDepth(QString symbol);
+    void UnsubscribeMktData(QString symbol);
+    void UnsubscribeMktDepth(QString symbol);
+
 
 public slots:
-    void onTickUpdating(const Tick &tick);
-    void onContractRetrieved(QMap<QString, QStringList> mapContract);
+    void onInstrumentTicked(Tick tick);
+    void onUpdateContractInfo(ContractInfo contractInfo);
+    void onReqContractInfoErr(QString symbol);
+
 
 };
 

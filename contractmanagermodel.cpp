@@ -1,6 +1,7 @@
 #include "contractmanagermodel.h"
 #include <QDebug>
 #include <QDateTime>
+#include "contractmanager.h"
 
 ContractManagerModel::ContractManagerModel(QObject *parent)
     :QAbstractTableModel(parent)
@@ -15,7 +16,7 @@ int ContractManagerModel::rowCount(const QModelIndex & /*parent*/) const
 
 int ContractManagerModel::columnCount(const QModelIndex & /*parent*/) const
 {
-    return 15;
+    return 14;
 }
 
 QVariant ContractManagerModel::data(const QModelIndex &index, int role) const
@@ -30,8 +31,6 @@ QVariant ContractManagerModel::data(const QModelIndex &index, int role) const
        {
            return mGridData[mKeyList[index.row()]].at(index.column());
        }
-
-
     }
     return QVariant();
 }
@@ -44,35 +43,34 @@ QVariant ContractManagerModel::headerData(int section, Qt::Orientation orientati
             switch (section)
             {
             case 0:
-                return QString("ContractId");
+                return QString("SYMBOL");
             case 1:
-                return QString("Exchange");
+                return QString("EXPIRY");
             case 2:
-                return QString("Symbol");
+                return QString("BID_SZ");
             case 3:
-                return QString("SecType");
+                return QString("BID");
             case 4:
-                return QString("Expiry");
+                return QString("ASK");
             case 5:
-                return QString("LastPx");
+                return QString("ASK_SZ");
             case 6:
-                return QString("Qty");
+                return QString("LAST");
             case 7:
-                return QString("BidSz");
+                return QString("LAST_SZ");
             case 8:
-                return QString("Bid");
+                return QString("HIGH");
             case 9:
-                return QString("Ask");
+                return QString("LOW");
             case 10:
-                return QString("AskSz");
+                return QString("VOLUME");
             case 11:
-                return QString("Status");
+                return QString("CLOSE");
             case 12:
-                return QString("TimeStamp");
+                return QString("%CHG");
             case 13:
-                return QString("LotSize");
-            case 14:
-                return QString("Multiplier");
+                return QString("TIME");
+
             }
         }
     }
@@ -82,67 +80,34 @@ QVariant ContractManagerModel::headerData(int section, Qt::Orientation orientati
 bool ContractManagerModel::setData(const QModelIndex & index, const QVariant & value, int role)
 {
 
-    int idxRow = index.row();
-    int idxCol = index.column();
-    int nRow = rowCount();
-
     QString strValue = value.toString().trimmed();
-    QString contractId = this->index(idxRow, 0).data().toString().trimmed();
-    QString exchange = this->index(idxRow, 1).data().toString().trimmed();
 
-    if (role == Qt::EditRole && idxCol==0 && idxRow == nRow - 1 )
+    if (role == Qt::EditRole && index.column()==0 )
     {
         if(!mKeyList.contains(strValue) && strValue != "")
         {
-
             //newline
             mKeyList.append(strValue);
 
             QStringList tmpStrList;
-            tmpStrList<<strValue<<""<<""<<""<<""<<""<<""<<""<<""<<""<<""<<"OFF"<<""<<""<<"";
+            tmpStrList<<strValue;
+            for(int i = 1; i < columnCount()-1; i++) tmpStrList << "";
+
             mGridData[strValue] = tmpStrList;
 
-            emit dataChanged(createIndex(idxRow,0),createIndex(idxRow,14));
+            emit dataChanged(createIndex(index.row(),0),createIndex(index.row(),columnCount()-1));
             emit layoutChanged();
+            emit ReqContractInfo(strValue);
             return true;
-
         }
     }
-
-    if(role == Qt::EditRole && index.column() == 1)
-    {
-        if(mKeyList.contains(contractId) && strValue != "")
-        {
-
-            mGridData[contractId][1] = strValue;
-            QModelIndex indexExch = createIndex(idxRow, 1);
-
-            emit dataChanged(indexExch, indexExch);
-            return true;
-
-        }
-
-    }
-
 
     return true;
 }
 
 Qt::ItemFlags ContractManagerModel::flags(const QModelIndex &index) const
 {
-    int idxRow = index.row();
-    int idxCol = index.column();
-    int nRow = rowCount();
-
-    QString contractId = this->index(idxRow, 0).data().toString().trimmed();
-    QString exchange = this->index(idxRow, 1).data().toString().trimmed();
-
-    if (idxCol == 0 && idxRow == nRow-1) //first column and last empty row
-    {
-
-        return Qt::ItemIsEditable | QAbstractTableModel::flags(index);
-    }
-    else if(idxCol == 1 && contractId != "" && exchange=="" && idxRow != nRow-1)
+    if (index.column() == 0 && index.row() == columnCount()-1) //first column, last row editable
     {
         return Qt::ItemIsEditable | QAbstractTableModel::flags(index);
     }
@@ -150,59 +115,52 @@ Qt::ItemFlags ContractManagerModel::flags(const QModelIndex &index) const
     {
         return QAbstractTableModel::flags(index);
     }
+
 }
 
 
-
-
-void ContractManagerModel::onTickUpdating(const Tick &tick)
+void ContractManagerModel::onInstrumentTicked(Tick tick)
 {
-    QString contractId = tick.contractId;
+    QString symbol = tick.contractId;
 
-    if(mGridData.contains(contractId))
+    if(mGridData.contains(symbol))
     {
-        mGridData[contractId][5] = tick.price;
-        mGridData[contractId][6] = tick.size;
-        mGridData[contractId][12] = QDateTime::fromMSecsSinceEpoch(tick.timeStamp.toLongLong()).toString("hh:mm:ss.zzz");
+        int tickType = tick.typeId.toInt();
+        int offset = 2;
 
-        int row = mKeyList.indexOf(contractId);
-        QModelIndex indexLeft = createIndex(row,5);
-        QModelIndex indexRight = createIndex(row,6);
-        QModelIndex indexTime = createIndex(row,12);
+        mGridData[symbol][offset + tickType] = tick.value;
+        mGridData[symbol][13] = QDateTime::fromMSecsSinceEpoch(tick.timeStamp.toLongLong()).toString("hh:mm:ss.zzz");
 
+        int row = mKeyList.indexOf(symbol);
+        QModelIndex indexLeft = createIndex(row,0);
+        QModelIndex indexRight = createIndex(row,columnCount()-1);
         emit dataChanged(indexLeft, indexRight);
-        emit dataChanged(indexTime, indexTime);
-
 
     }
 
 }
 
-void ContractManagerModel::onContractRetrieved(QMap<QString, QStringList> mapContract)
+
+void ContractManagerModel::onUpdateContractInfo(ContractInfo contractInfo)
 {
-    int nContracts = mapContract.size();
-    if(nContracts > 0)
-    {
-        int idx;
-        mGridData.clear();
-        mKeyList.clear();
-        mKeyList = mapContract.keys();
-
-        for(idx = 0; idx < nContracts; idx++)
-        {
-            QString contractId = mKeyList[idx];
-            QStringList tmpStrList;
-            tmpStrList << mapContract[contractId][0] << mapContract[contractId][1]    //contractId, exchange
-                       << mapContract[contractId][2] << mapContract[contractId][3]    //symbol, secType
-                       << mapContract[contractId][4]                                   //expiry,
-                       << "" << "" << "" << "" << "" << ""                            //lastPx, lastSz, bidSz, bid,ask, askSize
-                       << "OFF" <<""                                                  //status,timeStamp;
-                       << mapContract[contractId][5] << mapContract[contractId][6];   //lotSize, multiplier
-
-            mGridData[contractId] = tmpStrList;
-        }
-        emit layoutChanged();
-    }
+    QString symbol = contractInfo.pSymbol;
+    int idxRow = mKeyList.indexOf(symbol);
+    QStringList tmpStrlist;
+    tmpStrlist<<symbol
+             <<contractInfo.expiry
+             <<""<<""<<""<<""<<""<<""<<""<<""<<""<<""<<""<<"";
+    mGridData[symbol] = tmpStrlist;
+    QModelIndex indexLeft = createIndex(idxRow,0);
+    QModelIndex indexRight = createIndex(idxRow,columnCount()-1);
+    emit dataChanged(indexLeft, indexRight);
 
 }
 
+void ContractManagerModel::onReqContractInfoErr(QString symbol)
+{
+    int idxRow = mKeyList.indexOf(symbol);
+    mGridData.remove(symbol);
+    mKeyList.removeAll(symbol);
+    removeRow(idxRow);
+    emit layoutChanged();
+}

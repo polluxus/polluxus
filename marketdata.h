@@ -11,6 +11,14 @@ struct Tick
 {
     QString contractId;
     QString timeStamp;
+    QString typeId;
+    QString value;
+};
+
+struct Trade
+{
+    QString contractId;
+    QString timeStamp;
     QString price;
     QString size;
 };
@@ -18,39 +26,36 @@ struct Tick
 struct Depth
 {
     QString contractId;
-    QDateTime timeStamp;
-    int position;
-    int operation;
-    int side;
-    double price;
-    int size;
+    QString timeStamp;
+    QString marketMaker;
+    QString position;
+    QString operation;
+    QString side;
+    QString price;
+    QString size;
 };
 
 
 struct ContractInfo
 {
+    QString pSymbol;
     QString contractId;
     QString symbol;
+    QString localSymbol;
     QString secType;
     QString exchange;
     QString primaryExchange;
     QString expiry;
     QString currency;
-    int lotSize;
-    double minTick;
-    double multiplier;
-    QString mktDataStatus = "OFF";
-    QString mktDepthStatus = "OFF";
+    QString lotSize;
+    QString minTick;
+    QString multiplier;
 };
 
 struct OrderBook
 {
     QString contractId;
     QString timeStamp;
-    int flag;   //-1: last update is bid, 0: last update is last, 1: last update is ask
-
-    QString lastTradePx;
-    QString lastTradeSz;
 
     QStringList lstBidPx;
     QStringList lstBidSz;
@@ -109,6 +114,7 @@ struct VanillaTrade
 };
 
 Q_DECLARE_METATYPE(Tick)
+Q_DECLARE_METATYPE(Trade)
 Q_DECLARE_METATYPE(Depth)
 Q_DECLARE_METATYPE(ContractInfo)
 Q_DECLARE_METATYPE(OrderBook)

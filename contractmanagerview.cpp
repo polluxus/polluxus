@@ -123,14 +123,6 @@ void ContractManagerView::loadWorkSpace()
 
 }
 
-void ContractManagerView::onTickUpdating(const Tick &tick)
-{
-    qDebug() << "Recieved TickUpdating()"<<tick.contractId;
-    pModel->onTickUpdating(tick);
-
-}
-
-
 
 void ContractManagerView::onCustomMenuRequested(QPoint pos)
 {
@@ -155,57 +147,39 @@ void ContractManagerView::onAtnSubscribeTriggered()
     int idxRow = selIndex.row();
 
 
-    QString contractId = pModel->index(idxRow,0).data().toString();
-    QString exchange = pModel->index(idxRow,1).data().toString();
-    QString subStatus = pModel->index(idxRow,11).data().toString();
+    QString symbol = pModel->index(idxRow,0).data().toString();
 
-    qDebug()<<"contractId:"<<contractId<<"exchange:"<< exchange <<"Status:" << subStatus;
+    qDebug()<<"symbol:"<<symbol;
 
-    if(subStatus == "ON")
-    {
-        emit UnsubscribeMktData(contractId);
-    }
-
-    else
-    {
-        emit SubscribeMktData(contractId, exchange);
-    }
-
-    pModel->mGridData[contractId][11] = (subStatus=="ON" ? "OFF" : "ON");
-    emit pModel->dataChanged(pModel->index(idxRow,11), pModel->index(idxRow,11));
-
+    emit pModel->SubscribeMktData(symbol);
 
 }
 
 void ContractManagerView::onAtnDeleteTriggered()
 {
     //Check status
-    QModelIndex selIndex = pTableView->selectionModel()->currentIndex();
-    int idxRow = selIndex.row();
+//    QModelIndex selIndex = pTableView->selectionModel()->currentIndex();
+//    int idxRow = selIndex.row();
 
 
-    QString contractId = pModel->index(idxRow,0).data().toString();
-    QString exchange = pModel->index(idxRow,1).data().toString();
-    QString subStatus = pModel->index(idxRow,11).data().toString();
+//    QString contractId = pModel->index(idxRow,0).data().toString();
+//    QString exchange = pModel->index(idxRow,1).data().toString();
+//    QString subStatus = pModel->index(idxRow,11).data().toString();
 
-    qDebug()<<"contractId:"<<contractId<<"exchange:"<< exchange <<"Status:" << subStatus;
+//    qDebug()<<"contractId:"<<contractId<<"exchange:"<< exchange <<"Status:" << subStatus;
 
-    if(subStatus == "ON")
-    {
-        emit UnsubscribeMktData(contractId);
-    }
+//    if(subStatus == "ON")
+//    {
+//        emit UnsubscribeMktData(contractId);
+//    }
 
-    pModel->mGridData.remove(contractId);
-    pModel->mKeyList.removeAll(contractId);
-    pModel->removeRow(idxRow);
-    emit pModel->layoutChanged();
-
-}
-
-void ContractManagerView::onTest()
-{
+//    pModel->mGridData.remove(contractId);
+//    pModel->mKeyList.removeAll(contractId);
+//    pModel->removeRow(idxRow);
+//    emit pModel->layoutChanged();
 
 }
+
 
 
 

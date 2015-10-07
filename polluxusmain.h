@@ -17,14 +17,18 @@ class ContractManager;
 class ContractManagerView;
 class QSettings;
 class DbManager;
+class QHBoxLayout;
+
 
 class PolluxusMain : public QWidget
 {
     Q_OBJECT
 public:
 
-    PosixIBClient *pIBAdapter;
-    MessageProcessor* pMsgProcessor;
+    PosixIBClient *pDataIBAdapter;
+    MessageProcessor *pDataMsgProcessor;
+    PosixIBClient *pOrderIBAdapter;
+    MessageProcessor *pOrderMsgProcessor;
 
     explicit PolluxusMain(QWidget *parent = 0);
     virtual ~PolluxusMain();
@@ -49,10 +53,10 @@ private:
     int  m_nMouseClick_X_Coordinate;
     int  m_nMouseClick_Y_Coordinate;
 
-
+    QLabel *pLogo;
     QMenuBar *pMenuBar;
     QToolBar *pToolBar;
-
+    QHBoxLayout *hLayout;
 
     QString host;
     int port;
@@ -60,7 +64,8 @@ private:
 
     QPushButton *btnNewOrderBookWidget;
     QPushButton *btnTest;
-    QPushButton *btnConnect;
+    QPushButton *btnConnectData;
+    QPushButton *btnConnectOrder;
 
     QLabel *lbLight;
 
@@ -71,8 +76,12 @@ private:
     DbManager *pDbManager;
     QString dbPath;
 
+    void createAppLogo();
     void createMenuBar();
     void createToolBar();
+    void createLayout();
+
+    void connectSignalSlot();
     void adjustTopBarPosition();
 
 
@@ -82,9 +91,10 @@ public slots:
 
     void onSaveWorkSpaces();
 
-    void onAdapterConnect();
-    void onAdapterConnected();
-    void onAdapterDisconnected();
+    void onAdapterConnectData();
+    void onAdapterConnectOrder();
+    void onAdapterConnected(int connType);
+    void onAdapterDisconnected(int connType);
     void onNewOrderBookWidget();
     void onTest();
     void onAdjustTimeDiff(qint64 timeDiffMS);

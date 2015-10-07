@@ -14,6 +14,8 @@ DigitalClock::DigitalClock(QWidget *parent)
     setWindowFlags(Qt::FramelessWindowHint);
     setSegmentStyle(Flat);
 
+    setFont(QFont("Times", 18, QFont::Bold));
+
     timeDiffMS = 0;
 
     QTimer *timer = new QTimer(this);

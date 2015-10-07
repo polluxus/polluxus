@@ -4,6 +4,9 @@
 #include <QSqlRecord>
 #include <QDebug>
 #include <QThread>
+#include <QDate>
+
+
 
 
 
@@ -46,22 +49,31 @@ bool DbManager::isOpen() const
     return m_db.isOpen();
 }
 
-bool DbManager::addContract(QString contractId, QString exchange, QString symbol,  QString secType,
-                            QString expiry, QString lotSize, QString multiplier)
+bool DbManager::addContract(QString pSymbol, QString contractId, QString symbol, QString localSymbol,  QString secType,
+                            QString exchange, QString primaryExchange, QString expiry,
+                            QString currency, QString lotSize,QString minTick, QString multiplier)
 {
     bool success = false;
 
     if (!contractId.isEmpty())
     {
         QSqlQuery queryAdd;
-        queryAdd.prepare("INSERT INTO contract (contractId, exchange, symbol, secType, expiry, lotSize, multiplier) "
-                         "VALUES (:contractId, :exchange, :symbol, :secType, :expiry, :lotSize, :multiplier)");
+        queryAdd.prepare("INSERT INTO contract_ib (pSymbol, contractId, symbol, localSymbol,secType, "
+                         "exchange, primaryExchange, expiry, currency, lotSize, minTick, multiplier) "
+                         "VALUES (:pSymbol, :contractId, :symbol, :localSymbol, :secType, "
+                         ":exchange, :primaryExchange, :expiry, :currency, :lotSize, :minTick, :multiplier)");
+
+        queryAdd.bindValue(":pSymbol", pSymbol);
         queryAdd.bindValue(":contractId", contractId);
-        queryAdd.bindValue(":exchange", exchange);
         queryAdd.bindValue(":symbol", symbol);
+        queryAdd.bindValue(":localSymbol", localSymbol);
         queryAdd.bindValue(":secType", secType);
+        queryAdd.bindValue(":exchange", exchange);
+        queryAdd.bindValue(":primaryExchange", primaryExchange);
         queryAdd.bindValue(":expiry", expiry);
+        queryAdd.bindValue(":currency", currency);
         queryAdd.bindValue(":lotSize", lotSize);
+        queryAdd.bindValue(":minTick", minTick);
         queryAdd.bindValue(":multiplier", multiplier);
 
         if(queryAdd.exec())
@@ -81,15 +93,15 @@ bool DbManager::addContract(QString contractId, QString exchange, QString symbol
     return success;
 }
 
-bool DbManager::removeContract(QString contractId)
+bool DbManager::removeContract(QString pSymbol)
 {
     bool success = false;
 
-    if (contractExists(contractId))
+    if (contractExists(pSymbol))
     {
         QSqlQuery queryDelete;
-        queryDelete.prepare("DELETE FROM contract WHERE contractId = (:contractId)");
-        queryDelete.bindValue(":contractId", contractId);
+        queryDelete.prepare("DELETE FROM contract_ib WHERE pSymbol = (:pSymbol)");
+        queryDelete.bindValue(":pSymbol", pSymbol);
         success = queryDelete.exec();
 
         if(!success)
@@ -108,19 +120,26 @@ bool DbManager::removeContract(QString contractId)
 void DbManager::printAllContracts()
 {
     qDebug() << "Contracts in db:";
-    QSqlQuery query("SELECT * FROM contract");
+    QSqlQuery query("SELECT * FROM contract_ib");
 
     while (query.next())
     {
-        QString contractId = query.value(0).toString();
-        QString exchange = query.value(1).toString();
-        QString symbol = query.value(2).toString();
-        QString secType = query.value(3).toString();
-        QString expiry = query.value(4).toString();
-        QString lotSize = query.value(5).toString();
-        QString multiplier = query.value(6).toString();
 
-        qDebug() << "===" << contractId <<"-"
+        QString pSymbol = query.value("pSymbol").toString();
+        QString contractId = query.value("contractId").toString();
+        QString symbol = query.value("symbol").toString();
+        QString localSymbol = query.value("localSymbol").toString();
+        QString secType = query.value("secType").toString();
+        QString exchange = query.value("exchange").toString();
+        QString primaryExchange = query.value("primaryExchange").toString();
+        QString expiry = query.value("expiry").toString();
+        QString currency = query.value("currency").toString();
+        QString lotSize = query.value("lotSize").toString();
+        QString minTick = query.value("minTick").toString();
+        QString multiplier = query.value("multiplier").toString();
+
+        qDebug() << "===" << pSymbol <<"-"
+                          << contractId <<"-"
                           << exchange <<"-"
                           << symbol <<"-"
                           << secType <<"-"
@@ -130,13 +149,13 @@ void DbManager::printAllContracts()
     }
 }
 
-bool DbManager::contractExists(QString contractId)
+bool DbManager::contractExists(QString pSymbol)
 {
     bool exists = false;
 
     QSqlQuery checkQuery;
-    checkQuery.prepare("SELECT contractId FROM contract WHERE contractId = (:contractId)");
-    checkQuery.bindValue(":contractId", contractId);
+    checkQuery.prepare("SELECT pSymbol FROM contract_ib WHERE pSymbol = (:pSymbol)");
+    checkQuery.bindValue(":pSymbol", pSymbol);
 
     if (checkQuery.exec())
     {
@@ -158,7 +177,7 @@ bool DbManager::removeAllContracts()
     bool success = false;
 
     QSqlQuery removeQuery;
-    removeQuery.prepare("DELETE FROM contract");
+    removeQuery.prepare("DELETE FROM contract_ib");
 
     if (removeQuery.exec())
     {
@@ -174,34 +193,61 @@ bool DbManager::removeAllContracts()
 
 void DbManager::onRetrieveContract()
 {
-    QMap<QString, QStringList> mapContract;
+    QMap<QString, ContractInfo> mapContractInfo;
     qDebug() << "retrieve all contracts in db:";
-    QSqlQuery query("SELECT * FROM contract");
+    QSqlQuery query("SELECT * FROM contract_ib");
 
     while (query.next())
     {
-        QString contractId = query.value(0).toString();
-        QString exchange = query.value(1).toString();
-        QString symbol = query.value(2).toString();
-        QString secType = query.value(3).toString();
-        QString expiry = query.value(4).toString();
-        QString lotSize = query.value(5).toString();
-        QString multiplier = query.value(6).toString();
+        QDate todayDate = QDate::currentDate();
+        QString expiry = query.value("expiry").toString();
 
-        qDebug() << "===" << contractId <<"-"
-                          << exchange <<"-"
-                          << symbol <<"-"
-                          << secType <<"-"
-                          << expiry <<"-"
-                          << lotSize <<"-"
-                          << multiplier <<"-";
+        QDate expiryDate = QDate::fromString(expiry, "yyyymmdd");
 
-        QStringList tmpStrList;
-        tmpStrList << contractId << exchange << symbol << secType << expiry << lotSize << multiplier;
-        mapContract[contractId] =  tmpStrList;
+        if(expiryDate >= todayDate)
+        {
+
+            QString pSymbol = query.value("pSymbol").toString();
+            QString contractId = query.value("contractId").toString();
+            QString symbol = query.value("symbol").toString();
+            QString localSymbol = query.value("localSymbol").toString();
+            QString secType = query.value("secType").toString();
+            QString exchange = query.value("exchange").toString();
+            QString primaryExchange = query.value("primaryExchange").toString();
+            QString expiry = query.value("expiry").toString();
+            QString currency = query.value("currency").toString();
+            QString lotSize = query.value("lotSize").toString();
+            QString minTick = query.value("minTick").toString();
+            QString multiplier = query.value("multiplier").toString();
+
+            qDebug() << "===" << pSymbol <<"-"
+                              << contractId <<"-"
+                              << exchange <<"-"
+                              << symbol <<"-"
+                              << secType <<"-"
+                              << expiry <<"-"
+                              << lotSize <<"-"
+                              << multiplier <<"-";
+
+            ContractInfo contractInfo;
+            contractInfo.pSymbol = pSymbol;
+            contractInfo.contractId = contractId;
+            contractInfo.symbol = symbol;
+            contractInfo.localSymbol = localSymbol;
+            contractInfo.secType = secType;
+            contractInfo.exchange = exchange;
+            contractInfo.primaryExchange = primaryExchange;
+            contractInfo.expiry = expiry;
+            contractInfo.currency = currency;
+            contractInfo.lotSize = lotSize;
+            contractInfo.minTick = minTick;
+            contractInfo.multiplier = multiplier;
+
+            mapContractInfo[pSymbol] =  contractInfo;
+        }
     }
 
-    emit ContractRetrieved(mapContract);
+    emit ContractRetrieved(mapContractInfo);
 }
 
 

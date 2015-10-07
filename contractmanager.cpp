@@ -19,74 +19,93 @@ ContractManager::~ContractManager()
     delete pThread;
 }
 
-void ContractManager::onContractDetailUpdating(const ContractInfo &contractInfo)
+void ContractManager::onContractRetrieved(QMap<QString, ContractInfo> mapContractInfo)
 {
-//    qDebug() << "ContractManager::onContractDetailUpdating() in thread:"  << QThread::currentThreadId();
-//    qDebug() << "onContractDetailUpdating():" << contractInfo.symbol << ":" << contractInfo.exchange;
-}
-
-void ContractManager::onTickUpdating(const Tick &tick)
-{
-    qDebug() << "oContractManager::onTickUpdating():" << tick.contractId << ":" << tick.price<< ":" << tick.size;
-    mapTick[tick.contractId] = tick;
-}
-
-void ContractManager::onSubscribeMktData(QString contractId, QString exchange)
-{
-    emit ReqMktData(contractId, exchange);
-    mapContractInfo[contractId].mktDataStatus = "ON";
-}
-
-void ContractManager::onSubscribeMktDepth(QString contractId, QString exchange)
-{
-    emit ReqMktDepth(contractId, exchange);
-    mapContractInfo[contractId].mktDepthStatus = "ON";
-}
-
-void ContractManager::onUnsubscribeMktData(QString contractId)
-{
-    emit CancelMktData(contractId);
-    mapContractInfo[contractId].mktDataStatus = "OFF";
-}
-
-void ContractManager::onUnsubscribeMktDepth(QString contractId)
-{
-    emit CancelMktDepth(contractId);
-    mapContractInfo[contractId].mktDepthStatus = "OFF";
-}
-
-void ContractManager::test1()
-{
-    qDebug() << "ContractManager::test1() in thread:"  << QThread::currentThreadId();
-}
-void ContractManager::test2()
-{
-    qDebug() << "ContractManager::test2() in thread:"  << QThread::currentThreadId();
-}
-void ContractManager::onContractRetrieved(QMap<QString, QStringList> mapContract)
-{
-    int nContracts = mapContract.size();
-    if(nContracts > 0)
+    qDebug() << "ContractManager::onContractRetrieved():";
+    this->mapContractInfo = mapContractInfo;
+    foreach(ContractInfo contractInfo, mapContractInfo)
     {
-        int idx;
-        mapContractInfo.clear();
-        QList<QString> mKeyList = mapContract.keys();
+        mapConIdSymbol[contractInfo.contractId] = contractInfo.pSymbol;
+    }
+}
 
-        for(idx = 0; idx < nContracts; idx++)
-        {
-            QString contractId = mKeyList[idx];
 
-            mapContractInfo[contractId].contractId = contractId;
-            mapContractInfo[contractId].exchange = mapContract[contractId][1];
-            mapContractInfo[contractId].symbol = mapContract[contractId][2];
-            mapContractInfo[contractId].secType = mapContract[contractId][3];
-            mapContractInfo[contractId].expiry = mapContract[contractId][4];
-            mapContractInfo[contractId].lotSize = (mapContract[contractId][5]).toInt();
-            mapContractInfo[contractId].multiplier = (mapContract[contractId][6]).toDouble();
+void ContractManager::onAdapterTraded(Trade trade)
+{
+    qDebug() <<"ContractManager::onAdapterTraded():"
+             <<trade.contractId<<"-"
+             <<trade.timeStamp<<"-"
+             <<trade.price<<"-"
+             <<trade.size;
+}
 
-            mapContractInfo[contractId].mktDataStatus = "OFF";
-            mapContractInfo[contractId].mktDepthStatus = "OFF";
-        }
+void ContractManager::onAdapterDepthed(Depth depth)
+{
+    qDebug() <<"ContractManager::onAdapterDepthed():"
+             <<depth.contractId<<"-"
+             <<depth.timeStamp;
+}
+
+void ContractManager::onAdapterTicked(Tick tick)
+{
+    qDebug() <<"ContractManager::onAdapterTicked():"
+             <<tick.contractId<<"-"
+             <<tick.timeStamp;
+
+    QString contractId = tick.contractId;
+    if(mapConIdSymbol.contains(contractId))
+    {
+        tick.contractId = mapConIdSymbol[contractId];
+        emit InstrumentTicked(tick);
+    }
+}
+
+void ContractManager::onSubscribeMktData(QString symbol)
+{
+    if(mapContractInfo.contains(symbol))
+    {
+        ContractInfo contractInfo = mapContractInfo[symbol];
+        emit ReqMktData(contractInfo.contractId, contractInfo.exchange);
+    }
+}
+
+void ContractManager::onSubscribeMktDepth(QString symbol)
+{
+    if(mapContractInfo.contains(symbol))
+    {
+        ContractInfo contractInfo = mapContractInfo[symbol];
+        emit ReqMktDepth(contractInfo.contractId, contractInfo.exchange);
+    }
+}
+
+void ContractManager::onUnSubscribeMktData(QString symbol)
+{
+    if(mapContractInfo.contains(symbol))
+    {
+        ContractInfo contractInfo = mapContractInfo[symbol];
+        emit CancelMktData(contractInfo.contractId);
+    }
+}
+
+void ContractManager::onUnSubscribeMktDepth(QString symbol)
+{
+    if(mapContractInfo.contains(symbol))
+    {
+        ContractInfo contractInfo = mapContractInfo[symbol];
+        emit CancelMktDepth(contractInfo.contractId);
     }
 
 }
+
+ void ContractManager::onReqContractInfo(QString symbol)
+ {
+
+     if(mapContractInfo.contains(symbol))
+     {
+         emit UpdateContractInfo(mapContractInfo[symbol]);
+     }
+     else
+     {
+         emit ReqContractInfoErr(symbol);
+     }
+ }

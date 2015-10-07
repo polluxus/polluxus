@@ -30,7 +30,9 @@ SOURCES += main.cpp\
     contractmanagerview.cpp \
     contractmanager.cpp \
     dbmanager.cpp \
-    ordermanager.cpp
+    ordermanager.cpp \
+    polluxusutility.cpp \
+    instrument.cpp
 
 HEADERS  += polluxusmain.h \
     tws/Shared/CommissionReport.h \
@@ -63,7 +65,9 @@ HEADERS  += polluxusmain.h \
     contractmanagerview.h \
     contractmanager.h \
     dbmanager.h \
-    ordermanager.h
+    ordermanager.h \
+    polluxusutility.h \
+    instrument.h
 
 
 INCLUDEPATH += tws/src \

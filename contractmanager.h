@@ -4,11 +4,9 @@
 #include <QObject>
 #include <QMap>
 
-struct ContractInfo;
-struct Tick;
-struct OrderBook;
+#include "instrument.h"
 
-
+class PosixIBClient;
 
 class ContractManager : public QObject
 {
@@ -17,11 +15,11 @@ public:
     explicit ContractManager(QObject *parent = 0);
     virtual ~ContractManager();
 
-    QThread *pThread;
-
-    QMap<QString, Tick> mapTick;
+    QMap<QString, Instrument*> mapInstrument;
     QMap<QString, ContractInfo> mapContractInfo;
-    QMap<QString, OrderBook> mapOrderBook;
+    QMap<QString, QString> mapConIdSymbol;
+
+    QThread *pThread;
 
 signals:
     void ReqMktData(QString contractId, QString exchange);
@@ -29,18 +27,26 @@ signals:
     void CancelMktData(QString contractId);
     void CancelMktDepth(QString contractId);
 
+    void InstrumentTraded(Trade trade);
+    void InstrumentDepthed(Depth depth);
+    void InstrumentTicked(Tick tick);
+
+    void UpdateContractInfo(ContractInfo contractInfo);
+    void ReqContractInfoErr(QString symbol);
+
 public slots:
-    void onTickUpdating(const Tick &tick);
-    void onContractDetailUpdating(const ContractInfo &contractInfo);
+    void onContractRetrieved(QMap<QString, ContractInfo> mapContractInfo);
 
-    void onSubscribeMktData(QString contractId, QString exchange);
-    void onSubscribeMktDepth(QString contractId, QString exchange);
-    void onUnsubscribeMktData(QString contractId);
-    void onUnsubscribeMktDepth(QString contractId);
-    void onContractRetrieved(QMap<QString, QStringList> mapContract);
+    void onAdapterTraded(Trade trade);
+    void onAdapterDepthed(Depth depth);
+    void onAdapterTicked(Tick tick);
 
-    void test1();
-    void test2();
+    void onSubscribeMktData(QString symbol);
+    void onSubscribeMktDepth(QString symbol);
+    void onUnSubscribeMktData(QString symbol);
+    void onUnSubscribeMktDepth(QString symbol);
+
+    void onReqContractInfo(QString symbol);
 };
 
 #endif // CONTRACTMANAGER_H

@@ -5,9 +5,10 @@
 #include <QMap>
 #include <QSqlDatabase>
 #include <QStringList>
+#include "marketdata.h"
+
+
 class QThread;
-
-
 
 class DbManager  : public QObject
 {
@@ -17,17 +18,18 @@ public:
     virtual ~DbManager();
 
     bool isOpen() const;
-    bool addContract(QString contractId,  QString exchange, QString symbol,QString secType,
-                     QString expiery, QString lotSize, QString multiplier);
-    bool removeContract(QString contractId);
-    bool contractExists(QString contractId);
+    bool addContract(QString pSymbol, QString contractId, QString symbol, QString localSymbol,  QString secType,
+                     QString exchange, QString primaryExchange, QString expiry,
+                     QString currency, QString lotSize,QString minTick, QString multiplier);
+    bool removeContract(QString pSymbol);
+    bool contractExists(QString pSymbol);
     void printAllContracts();
     bool removeAllContracts();
 
     QThread *pThread;
 
 signals:
-    void ContractRetrieved(QMap<QString, QStringList> mapContract);
+    void ContractRetrieved(QMap<QString, ContractInfo> mapContractInfo);
 
 public slots:
     void onRetrieveContract();

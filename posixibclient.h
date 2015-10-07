@@ -11,12 +11,9 @@
 #include "EWrapper.h"
 #include <memory>
 #include <QMap>
-
+#include "marketdata.h"
 
 class EPosixClientSocket;
-struct Tick;
-struct Depth;
-struct ContractInfo;
 
 enum State {
     ST_CONNECT,
@@ -42,16 +39,17 @@ public:
     virtual ~PosixIBClient();
     void processMessages();
 
-    long getNextValidUId();
-    long nextValidUId;
     qint64 timeDiffMS;
 
+    int connType;
+
 public slots:
-    void onConnect(QString host, int port,  int clientID);
+    void onConnect(QString host, int port,  int clientID, int connType);
     void onDisconnect();
     void onReqCurrentTime();
     void onReqMktData(QString contractId, QString exchange);
     void onReqMktDepth(QString contractId, QString exchange);
+
     void onCancelMktData(QString contractId);
     void onCancelMktDepth(QString contractId);
 
@@ -60,19 +58,16 @@ public slots:
     void onTest();
 
 signals:
-    void AdapterConnected();
-    void AdapterDisconnected();
+    void AdapterConnected(int connType);
+    void AdapterDisconnected(int connType);
     void OrderSubmitted(QString msg);
     void OrderCanceled(QString msg);
     void OrderUpdated(QString msg);
     void OrderFilled(QString msg);
 
-    void TickUpdating(const Tick &tick);
-    void DepthUpdating(const Depth &depth);
-    void BBidUpdating(const Depth &depth);
-    void BAskUpdating(const Depth &depth);
-
-    void ContractDetailUpdating(const ContractInfo &contractInfo);
+    void AdapterTraded(Trade trade);
+    void AdapterDepthed(Depth depth);
+    void AdapterTicked(Tick tick);
 
     void AdjustTimeDiff(qint64 timeDiffMS);
 
@@ -92,7 +87,6 @@ private:
 
     QMap<QString, long> conIdTickMap;
     QMap<QString, long> conIdDepthMap;
-
 
 	void reqCurrentTime();
 	void placeOrder();

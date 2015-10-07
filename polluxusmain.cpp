@@ -12,7 +12,9 @@
 #include "contractmanagerview.h"
 #include "orderbookwidget.h"
 #include "dbmanager.h"
-
+#include "polluxusutility.h"
+#include "instrument.h"
+#include <QHBoxLayout>
 
 PolluxusMain::PolluxusMain(QWidget *parent) :
     QWidget(parent, Qt::FramelessWindowHint)
@@ -27,90 +29,33 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     loadDbPath();
     loadGateway();
 
-    QLabel *pLogo = new QLabel();
-    pLogo->setFixedWidth(20);
-    pLogo->setFixedHeight(20);
-    pLogo->setScaledContents( true );
-    pLogo->setPixmap(QPixmap(":/images/setup.png"));
-
+    createAppLogo();
     createMenuBar();
     createToolBar();
-
-    QWidget* spacer = new QWidget();
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    QHBoxLayout *hLayout = new QHBoxLayout;
-    hLayout->setSpacing(0);
-    hLayout->setMargin(0);
-    hLayout->setContentsMargins(0,0,0,0);
-
-    hLayout->addWidget(pLogo);
-    hLayout->addWidget(pMenuBar);
-    hLayout->addWidget(spacer);
-    hLayout->addWidget(pToolBar);
-    setLayout(hLayout);
+    createLayout();
 
     adjustTopBarPosition();
 
-
-    pIBAdapter = new PosixIBClient();
-
-    pMsgProcessor = new MessageProcessor(pIBAdapter);
-
-    connect(pIBAdapter, SIGNAL(AdapterConnected()), this, SLOT(onAdapterConnected()));
-    connect(pIBAdapter, SIGNAL(AdapterDisconnected()), this, SLOT(onAdapterDisconnected()));
-    connect(pIBAdapter, SIGNAL(AdjustTimeDiff(qint64)), this, SLOT(onAdjustTimeDiff(qint64)));
+    pDataIBAdapter = new PosixIBClient();
+    pDataMsgProcessor = new MessageProcessor(pDataIBAdapter);
+    pOrderIBAdapter = new PosixIBClient();
+    pOrderMsgProcessor = new MessageProcessor(pDataIBAdapter);
 
     pLogger = new PolluxusLogger(this);
     pLogger->show();
 
-    pContractManager = new ContractManager();
+    pDbManager = new DbManager(dbPath);
 
-    qDebug() << "PolluxusMain in thread:"  << QThread::currentThreadId();
-    //pContractManager->test();
+    pContractManager = new ContractManager();
 
     pContractManagerView = new ContractManagerView(this);
     pContractManagerView->show();
 
-    pDbManager = new DbManager(dbPath);
-
-    QMetaObject::invokeMethod( pContractManager, "test1", Qt::QueuedConnection );
-
-    connect(pIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
-    connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManagerView, SLOT(onTickUpdating(const Tick)));
-    connect(pIBAdapter, SIGNAL(ContractDetailUpdating(const ContractInfo)), pContractManager, SLOT(onContractDetailUpdating(const ContractInfo)));
-    connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManager, SLOT(onTickUpdating(const Tick)));
-
-    connect(pContractManager, SIGNAL(ReqMktData(QString,QString)), pIBAdapter, SLOT(onReqMktData(QString,QString)));
-    connect(pContractManager, SIGNAL(CancelMktData(QString)), pIBAdapter, SLOT(onCancelMktData(QString)));
-
-    connect(pContractManagerView, SIGNAL(SubscribeMktData(QString,QString)),   pContractManager, SLOT(onSubscribeMktData(QString,QString)));
-    connect(pContractManagerView, SIGNAL(SubscribeMktDepth(QString, QString)), pContractManager, SLOT(onSubscribeMktDepth(QString,QString)));
-    connect(pContractManagerView, SIGNAL(UnsubscribeMktData(QString)),   pContractManager, SLOT(onUnsubscribeMktData(QString)));
-    connect(pContractManagerView, SIGNAL(UnsubscribeMktDepth(QString)),  pContractManager, SLOT(onUnsubscribeMktDepth(QString)));
-
-    connect(pDbManager, SIGNAL(ContractRetrieved(QMap<QString,QStringList>)), pContractManagerView->pModel, SLOT(onContractRetrieved(QMap<QString,QStringList>)));
-    connect(pDbManager, SIGNAL(ContractRetrieved(QMap<QString,QStringList>)), pContractManager, SLOT(onContractRetrieved(QMap<QString,QStringList>)));
-
-
     loadWorkSpace();
 
-    qRegisterMetaType<Tick>("Tick");
-    qRegisterMetaType<Tick>("Tick&");
-    qRegisterMetaType<Depth>("Depth");
-    qRegisterMetaType<Depth>("Depth&");
-    qRegisterMetaType<ContractInfo>("ContractInfo");
-    qRegisterMetaType<ContractInfo>("ContractInfo&");
-    qRegisterMetaType<OrderBook>("OrderBook");
-    qRegisterMetaType<OrderBook>("OrderBook&");
-    qRegisterMetaType<QMap<QString,QStringList>>("QMap<QString,QStringList>");
-    qRegisterMetaType<QMap<QString,QStringList>>("QMap<QString,QStringList>&");
+    PolluxusUtility::registerMetaType();
 
-    qRegisterMetaType<PairOrder>("PairOrder");
-    qRegisterMetaType<PairOrder>("PairOrder&");
-    qRegisterMetaType<VanillaTrade>("VanillaTrade");
-    qRegisterMetaType<VanillaTrade>("VanillaTrade&");
-
+    connectSignalSlot();
     QMetaObject::invokeMethod(pDbManager, "onRetrieveContract", Qt::QueuedConnection);
 
 }
@@ -119,15 +64,53 @@ PolluxusMain::~PolluxusMain()
 {
 
     saveWorkSpace();
-    if(!pIBAdapter) delete pIBAdapter;
+    if(!pDataIBAdapter) delete pDataIBAdapter;
     if(!wsSettings) delete wsSettings;
     if(!pContractManager) delete pContractManager;
     if(!pContractManagerView) delete pContractManagerView;
     if(!pLogger) delete pLogger;
-    if(!pMsgProcessor) delete pMsgProcessor;
+    if(!pDataMsgProcessor) delete pDataMsgProcessor;
     if(!pDbManager) delete pDbManager;
 }
 
+
+void PolluxusMain::connectSignalSlot()
+{
+    //connect signal slot here
+
+    connect(btnNewOrderBookWidget, SIGNAL(clicked(bool)), this, SLOT(onNewOrderBookWidget()), Qt::DirectConnection);
+    connect(btnTest, SIGNAL(clicked(bool)), this, SLOT(onTest()), Qt::DirectConnection);
+    connect(btnConnectData, SIGNAL(toggled(bool)), this, SLOT(onAdapterConnectData()), Qt::DirectConnection);
+    connect(btnConnectOrder, SIGNAL(toggled(bool)), this, SLOT(onAdapterConnectOrder()), Qt::DirectConnection);
+
+    connect(pOrderIBAdapter, SIGNAL(AdapterConnected(int)), this, SLOT(onAdapterConnected(int)));
+    connect(pOrderIBAdapter, SIGNAL(AdapterDisconnected(int)), this, SLOT(onAdapterDisconnected(int)));
+
+    connect(pDataIBAdapter, SIGNAL(AdapterConnected(int)), this, SLOT(onAdapterConnected(int)));
+    connect(pDataIBAdapter, SIGNAL(AdapterDisconnected(int)), this, SLOT(onAdapterDisconnected(int)));
+    connect(pDataIBAdapter, SIGNAL(AdjustTimeDiff(qint64)), this, SLOT(onAdjustTimeDiff(qint64)));
+    connect(pDataIBAdapter, SIGNAL(AdapterTraded(Trade)), pContractManager, SLOT(onAdapterTraded(Trade)));
+    connect(pDataIBAdapter, SIGNAL(AdapterDepthed(Depth)), pContractManager, SLOT(onAdapterDepthed(Depth)));
+    connect(pDataIBAdapter, SIGNAL(AdapterTicked(Tick)), pContractManager, SLOT(onAdapterTicked(Tick)));
+
+    connect(pDbManager, SIGNAL(ContractRetrieved(QMap<QString,ContractInfo>)), pContractManager, SLOT(onContractRetrieved(QMap<QString,ContractInfo>)));
+
+    connect(pContractManager, SIGNAL(ReqMktData(QString,QString)), pDataIBAdapter, SLOT(onReqMktData(QString,QString)));
+    connect(pContractManager, SIGNAL(CancelMktData(QString)), pDataIBAdapter, SLOT(onCancelMktData(QString)));
+    connect(pContractManager, SIGNAL(ReqMktDepth(QString,QString)), pDataIBAdapter, SLOT(onReqMktDepth(QString,QString)));
+    connect(pContractManager, SIGNAL(CancelMktDepth(QString)), pDataIBAdapter, SLOT(onCancelMktDepth(QString)));
+    connect(pContractManager, SIGNAL(InstrumentTicked(Tick)), pContractManagerView->pModel, SLOT(onInstrumentTicked(Tick)));
+    connect(pContractManager, SIGNAL(UpdateContractInfo(ContractInfo)), pContractManagerView->pModel, SLOT(onUpdateContractInfo(ContractInfo)));
+    connect(pContractManager, SIGNAL(ReqContractInfoErr(QString)), pContractManagerView->pModel, SLOT(onReqContractInfoErr(QString)));
+
+
+    connect(pContractManagerView->pModel, SIGNAL(SubscribeMktData(QString)),   pContractManager, SLOT(onSubscribeMktData(QString)));
+    connect(pContractManagerView->pModel, SIGNAL(SubscribeMktDepth(QString)), pContractManager, SLOT(onSubscribeMktDepth(QString)));
+    connect(pContractManagerView->pModel, SIGNAL(UnsubscribeMktData(QString)),   pContractManager, SLOT(onUnsubscribeMktData(QString)));
+    connect(pContractManagerView->pModel, SIGNAL(UnsubscribeMktDepth(QString)),  pContractManager, SLOT(onUnsubscribeMktDepth(QString)));
+    connect(pContractManagerView->pModel, SIGNAL(ReqContractInfo(QString)),   pContractManager, SLOT(onReqContractInfo(QString)));
+
+}
 
 void PolluxusMain::mousePressEvent(QMouseEvent* event)
 {
@@ -152,6 +135,15 @@ void PolluxusMain::mouseReleaseEvent(QMouseEvent* event)
 
         qDebug()<<this->rect().topLeft();
     }
+}
+
+void PolluxusMain::createAppLogo()
+{
+    pLogo = new QLabel();
+    pLogo->setFixedWidth(20);
+    pLogo->setFixedHeight(20);
+    pLogo->setScaledContents( true );
+    pLogo->setPixmap(QPixmap(":/images/setup.png"));
 }
 
 void PolluxusMain::createMenuBar()
@@ -206,9 +198,13 @@ void PolluxusMain::createToolBar()
 
     btnNewOrderBookWidget = new QPushButton("New OrderBook");
     btnTest = new QPushButton(tr("test"));
-    btnConnect = new QPushButton(tr("Connect"));
+    btnConnectData = new QPushButton(tr("Connect Data"));
+    btnConnectData->setCheckable(true);
+    btnConnectData->setIcon(QIcon(":/images/bullet-red.png"));
 
-    btnConnect->setCheckable(true);
+    btnConnectOrder = new QPushButton(tr("Connect Order"));
+    btnConnectOrder->setCheckable(true);
+    btnConnectOrder->setIcon(QIcon(":/images/bullet-red.png"));
 
     pClock = new DigitalClock(this);
 
@@ -226,7 +222,8 @@ void PolluxusMain::createToolBar()
 
     pToolBar->addWidget(btnNewOrderBookWidget);
     pToolBar->addWidget(btnTest);
-    pToolBar->addWidget(btnConnect);
+    pToolBar->addWidget(btnConnectData);
+    pToolBar->addWidget(btnConnectOrder);
 
     pToolBar->addWidget(pClock);
     pToolBar->addWidget(lbLight);
@@ -237,10 +234,24 @@ void PolluxusMain::createToolBar()
 
     pToolBar->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
 
-    connect(btnNewOrderBookWidget, SIGNAL(clicked(bool)), this, SLOT(onNewOrderBookWidget()), Qt::DirectConnection);
-    connect(btnTest, SIGNAL(clicked(bool)), this, SLOT(onTest()), Qt::DirectConnection);
-    connect(btnConnect, SIGNAL(toggled(bool)), this, SLOT(onAdapterConnect()), Qt::DirectConnection);
 
+}
+
+void PolluxusMain::createLayout()
+{
+    QWidget* spacer = new QWidget();
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    hLayout = new QHBoxLayout;
+    hLayout->setSpacing(0);
+    hLayout->setMargin(0);
+    hLayout->setContentsMargins(0,0,0,0);
+
+    hLayout->addWidget(pLogo);
+    hLayout->addWidget(pMenuBar);
+    hLayout->addWidget(spacer);
+    hLayout->addWidget(pToolBar);
+    setLayout(hLayout);
 }
 
 void PolluxusMain::adjustTopBarPosition()
@@ -254,7 +265,7 @@ void PolluxusMain::adjustTopBarPosition()
 
 void PolluxusMain::onTest()
 {
-    QMetaObject::invokeMethod(pIBAdapter, "onReqAccountUpdates", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(pDataIBAdapter, "onReqAccountUpdates", Qt::QueuedConnection);
 
 //    if (pDbManager->isOpen())
 //    {
@@ -279,20 +290,20 @@ void PolluxusMain::onAdjustTimeDiff(qint64 timeDiffMS)
     qDebug() << "Signal AdjustTimeDiff() received";
 }
 
-void PolluxusMain::onAdapterConnect()
+void PolluxusMain::onAdapterConnectData()
 {
-    if(btnConnect->isChecked())
+    if(btnConnectData->isChecked())
     {
-        qDebug() << "MainWindow:Hi I am connecting IB.------"  << QThread::currentThreadId();
-
-
-        QMetaObject::invokeMethod(pIBAdapter, "onConnect", Qt::QueuedConnection,
+        qDebug() << "MainWindow:Hi I am connecting IB Data API.------"  << QThread::currentThreadId();
+        QMetaObject::invokeMethod(pDataIBAdapter, "onConnect", Qt::QueuedConnection,
                                   Q_ARG(QString, host),
                                   Q_ARG(int, port),
-                                  Q_ARG(int, clientId));
+                                  Q_ARG(int, clientId),
+                                  Q_ARG(int, 0));               // 0 - Data API
 
-        btnConnect->setText(tr("Connecting..."));
-        btnConnect->setEnabled(false);
+        btnConnectData->setText(tr("Connecting..."));
+        btnConnectData->setEnabled(false);
+        btnConnectData->setIcon(QIcon(":/images/wait.png"));
 
 
         lbLight->setPixmap(QPixmap(":/images/wait.png"));
@@ -301,40 +312,96 @@ void PolluxusMain::onAdapterConnect()
 
     else
     {
-        qDebug() << "MainWindow:Hi I am disconnecting ib.------";
+        qDebug() << "MainWindow:Hi I am disconnecting IB Data API.------";
 
-        QMetaObject::invokeMethod(pIBAdapter, "onDisconnect", Qt::QueuedConnection );
+        QMetaObject::invokeMethod(pDataIBAdapter, "onDisconnect", Qt::QueuedConnection );
 
-        btnConnect->setText(tr("Disconnecting"));
-        btnConnect->setEnabled(false);
+        btnConnectData->setText(tr("Disconnecting"));
+        btnConnectData->setEnabled(false);
+        btnConnectData->setIcon(QIcon(":/images/bullet-grey.png"));
+
         lbLight->setPixmap(QPixmap(":/images/bullet-grey.png"));
 
     }
 }
 
-void PolluxusMain::onAdapterConnected()
+void PolluxusMain::onAdapterConnectOrder()
 {
-    qDebug() << "MainWindow:Recv connected signal from Posix.------";
+    if(btnConnectOrder->isChecked())
+    {
+        qDebug() << "MainWindow:Hi I am connecting IB Order API.------"  << QThread::currentThreadId();
+        QMetaObject::invokeMethod(pOrderIBAdapter, "onConnect", Qt::QueuedConnection,
+                                  Q_ARG(QString, host),
+                                  Q_ARG(int, port),
+                                  Q_ARG(int, clientId + 1),
+                                  Q_ARG(int , 1));                                  //1 - Order API
 
-    btnConnect->setText(tr("Disconnect"));
-    btnConnect->setEnabled(true);
+        btnConnectOrder->setText(tr("Connecting..."));
+        btnConnectOrder->setEnabled(false);
+        btnConnectOrder->setIcon(QIcon(":/images/wait.png"));
 
 
-    lbLight->setPixmap(QPixmap(":/images/bullet-green.png"));
+        lbLight->setPixmap(QPixmap(":/images/wait.png"));
 
-    pMsgProcessor->start();
+    }
 
-    //QMetaObject::invokeMethod(pIBAdapter, "onReqCurrentTime", Qt::QueuedConnection);
+    else
+    {
+        qDebug() << "MainWindow:Hi I am disconnecting IB Order API.------";
+        QMetaObject::invokeMethod(pOrderIBAdapter, "onDisconnect", Qt::QueuedConnection );
+
+        btnConnectOrder->setText(tr("Disconnecting"));
+        btnConnectOrder->setEnabled(false);
+        btnConnectOrder->setIcon(QIcon(":/images/bullet-grey.png"));
+
+        lbLight->setPixmap(QPixmap(":/images/bullet-grey.png"));
+
+    }
 }
 
-void PolluxusMain::onAdapterDisconnected()
+
+void PolluxusMain::onAdapterConnected(int connType)
 {
-    qDebug() << "MainWindow:Recv disconnected signal from Posix.------";
+    qDebug() << "MainWindow:Recv connected signal from Posix.------"<< connType;
 
-    btnConnect->setText(tr("Connect"));
-    btnConnect->setEnabled(true);
+    if(connType == 0)   //Data API
+    {
+        btnConnectData->setText(tr("Disconnect"));
+        btnConnectData->setEnabled(true);
+        btnConnectData->setIcon(QIcon(":/images/bullet-green.png"));
+        lbLight->setPixmap(QPixmap(":/images/bullet-green.png"));
+        pDataMsgProcessor->start();
+    }
+    else
+    {
+        btnConnectOrder->setText(tr("Disconnect"));
+        btnConnectOrder->setEnabled(true);
+        btnConnectOrder->setIcon(QIcon(":/images/bullet-green.png"));
+        lbLight->setPixmap(QPixmap(":/images/bullet-green.png"));
+        pOrderMsgProcessor->start();
+    }
+
+    //QMetaObject::invokeMethod(pDataIBAdapter, "onReqCurrentTime", Qt::QueuedConnection);
+}
+
+void PolluxusMain::onAdapterDisconnected(int connType)
+{
+    qDebug() << "MainWindow:Recv disconnected signal from Posix.------" << connType;
+
+    if(connType == 0)   //Data API
+    {
+    btnConnectData->setText(tr("Connect"));
+    btnConnectData->setEnabled(true);
+    btnConnectData->setIcon(QIcon(":/images/bullet-red.png"));
     lbLight->setPixmap(QPixmap(":/images/bullet-red.png"));
-
+    }
+    else
+    {
+        btnConnectOrder->setText(tr("Connect"));
+        btnConnectOrder->setEnabled(true);
+        btnConnectOrder->setIcon(QIcon(":/images/bullet-red.png"));
+        lbLight->setPixmap(QPixmap(":/images/bullet-red.png"));
+    }
 }
 
 
@@ -410,7 +477,7 @@ void PolluxusMain::onViewContractManager()
     if(!pContractManagerView)
     {
         pContractManagerView = new ContractManagerView(this);
-        connect(pIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManagerView, SLOT(onTickUpdating(const Tick)));
+        connect(pDataIBAdapter, SIGNAL(TickUpdating(const Tick)), pContractManagerView, SLOT(onTickUpdating(const Tick)));
         pContractManagerView->show();
     }
     else
@@ -424,7 +491,7 @@ void PolluxusMain::onViewLogger()
     if(!pLogger)
     {
         pLogger = new PolluxusLogger(this);
-        connect(pIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
+        connect(pDataIBAdapter, SIGNAL(OrderUpdated(QString)), pLogger, SLOT(onOrderUpdated(QString)));
         pLogger->show();
     }
     else
