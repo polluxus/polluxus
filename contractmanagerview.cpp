@@ -63,8 +63,6 @@ void ContractManagerView::createToolBar()
     pToolBar = new QToolBar;
     btnSubscribe = new QPushButton(tr("Subscribe"));
     pToolBar->addWidget(btnSubscribe);
-
-    connect(btnSubscribe, SIGNAL(clicked(bool)), this, SLOT(onTest()));
 }
 
 void ContractManagerView::createContextMenu()
@@ -148,11 +146,23 @@ void ContractManagerView::onAtnSubscribeTriggered()
 
 
     QString symbol = pModel->index(idxRow,0).data().toString();
+    int nCol = pModel->columnCount();
 
     qDebug()<<"symbol:"<<symbol;
 
-    emit pModel->SubscribeMktData(symbol);
+    if(pModel->headerData(idxRow, Qt::Vertical, Qt::DisplayRole).toString()=="OFF")
+    {
+        emit pModel->SubscribeMktData(symbol);
+        pModel->mGridData[symbol][nCol] = "ON";
 
+    }
+    else
+    {
+        emit pModel->UnsubscribeMktData(symbol);
+        pModel->mGridData[symbol][nCol] = "OFF";
+    }
+
+    emit pModel->headerDataChanged(Qt::Vertical, idxRow, idxRow);
 }
 
 void ContractManagerView::onAtnDeleteTriggered()

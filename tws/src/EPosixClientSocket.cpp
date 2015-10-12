@@ -206,8 +206,8 @@ bool EPosixClientSocket::handleSocketError()
 		return true;
 	}
 
-	if( errno == EWOULDBLOCK)
-		return false;
+    if( errno == EWOULDBLOCK)
+        return true;  //I changed to "return true", otherwise signal emitting would block this socket reading
 
 	if( errno == ECONNREFUSED) {
 		getWrapper()->error( NO_VALID_ID, CONNECT_FAIL.code(), CONNECT_FAIL.msg());

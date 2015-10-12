@@ -17,7 +17,7 @@ public slots:
 private:
     void run()
     {
-        qDebug() << "MessageProcessor: start() in thread: " << QThread::currentThreadId();
+        //qDebug() << "MessageProcessor: start() in thread: " << QThread::currentThreadId();
         while (pIBClient->isConnected())
         {
             //qDebug() << "MessageProcessor: start() in thread: " << QThread::currentThreadId();

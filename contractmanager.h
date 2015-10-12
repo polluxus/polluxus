@@ -27,24 +27,26 @@ signals:
     void CancelMktData(QString contractId);
     void CancelMktDepth(QString contractId);
 
-    void InstrumentTraded(Trade trade);
-    void InstrumentDepthed(Depth depth);
-    void InstrumentTicked(Tick tick);
+    void InstrumentTraded(const Trade &trade);
+    void InstrumentDepthed(const Depth &depth);
+    void InstrumentTicked(const Tick &tick);
 
-    void UpdateContractInfo(ContractInfo contractInfo);
+    void UpdateContractInfo(const ContractInfo &contractInfo);
     void ReqContractInfoErr(QString symbol);
 
 public slots:
-    void onContractRetrieved(QMap<QString, ContractInfo> mapContractInfo);
+    void onContractRetrieved(const QMap<QString, ContractInfo> &mapContractInfo);
 
-    void onAdapterTraded(Trade trade);
-    void onAdapterDepthed(Depth depth);
-    void onAdapterTicked(Tick tick);
+    void onAdapterTraded(const Trade &trade);
+    void onAdapterDepthed(const Depth &depth);
+    void onAdapterTicked(const Tick &tick);
+
+
 
     void onSubscribeMktData(QString symbol);
     void onSubscribeMktDepth(QString symbol);
-    void onUnSubscribeMktData(QString symbol);
-    void onUnSubscribeMktDepth(QString symbol);
+    void onUnsubscribeMktData(QString symbol);
+    void onUnsubscribeMktDepth(QString symbol);
 
     void onReqContractInfo(QString symbol);
 };

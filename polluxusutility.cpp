@@ -14,7 +14,7 @@ QMutex PolluxusUtility::mutex;
 long PolluxusUtility::getNextValidId()
 {
     QMutexLocker locker(&mutex);
-    return baseValidId + 1;
+    return baseValidId++;
 }
 
 void PolluxusUtility::registerMetaType()

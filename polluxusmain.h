@@ -2,6 +2,7 @@
 #define PolluxusMain_H
 
 #include <QWidget>
+#include "testsignalslot.h"
 
 class PosixIBClient;
 class MessageProcessor;
@@ -84,7 +85,7 @@ private:
     void connectSignalSlot();
     void adjustTopBarPosition();
 
-
+    TestSignalSlot *pTestSignalSlot;
 signals:
 
 public slots:

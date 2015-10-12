@@ -247,7 +247,7 @@ void PosixIBClient::onReqCurrentTime()
 void PosixIBClient::onReqMktData(QString contractId, QString exchange)
 {
     //check if it is in conIdTickMap
-
+    //qDebug() << "PosixIBClient: onReqMktData() in thread: " << QThread::currentThreadId();
     if(!conIdTickMap.contains(contractId))
     {
         long reqId = PolluxusUtility::getNextValidId();
@@ -257,7 +257,7 @@ void PosixIBClient::onReqMktData(QString contractId, QString exchange)
         contract.conId = contractId.toLong();
         contract.exchange = exchange.toStdString();
 
-        qDebug() << "I am going to reqMktData";
+        //qDebug() << "I am going to reqMktData-"<<reqId;
 
         pClient->reqMktData(reqId, contract, "233", false, TagValueListSPtr());
     }
@@ -277,7 +277,7 @@ void PosixIBClient::onReqMktDepth(QString contractId, QString exchange)
         contract.conId = contractId.toLong();
         contract.exchange = exchange.toStdString();
 
-        qDebug() << "I am going to reqMktDepth";
+        //qDebug() << "I am going to reqMktDepth";
 
         pClient->reqMktDepth(reqId, contract, 5, TagValueListSPtr());
     }
@@ -402,6 +402,7 @@ void PosixIBClient::error(const int id, const int errorCode, const IBString erro
 
 void PosixIBClient::tickPrice( TickerId tickerId, TickType field, double price, int canAutoExecute)
 {
+    qDebug() << "PosixIBClient: tickString() in thread: " << QThread::currentThreadId();
     qDebug() << "tickPrice():" << tickerId <<", TickType:" << field << ", price:" << price;
 
     QString contractId = conIdTickMap.key(tickerId, "");
@@ -409,27 +410,30 @@ void PosixIBClient::tickPrice( TickerId tickerId, TickType field, double price, 
     {
         Tick tick;
         tick.contractId = contractId;
-        tick.timeStamp = QDateTime::currentDateTime().addMSecs(-timeDiffMS).toString();
+        tick.timeStamp = QDateTime::currentDateTime().addMSecs(-timeDiffMS).toString("hh:mm:ss:zzz");
         tick.typeId = QString::number(field);
         tick.value = QString::number(price);
 
         emit AdapterTicked(tick);
+        //emit DummySignalTicked(contractId);
     }
 
 }
 void PosixIBClient::tickSize( TickerId tickerId, TickType field, int size)
 {
     qDebug() << "tickSize():" << tickerId <<", TickType:" << field << ", size:" << size;
+
     QString contractId = conIdTickMap.key(tickerId, "");
     if(contractId != "")
     {
         Tick tick;
         tick.contractId = contractId;
-        tick.timeStamp = QDateTime::currentDateTime().addMSecs(-timeDiffMS).toString();
+        tick.timeStamp = QDateTime::currentDateTime().addMSecs(-timeDiffMS).toString("hh:mm:ss:zzz");
         tick.typeId = QString::number(field);
         tick.value = QString::number(size);
 
         emit AdapterTicked(tick);
+        //emit DummySignalTicked(contractId);
     }
 }
 void PosixIBClient::tickOptionComputation( TickerId tickerId, TickType tickType, double impliedVol, double delta,
@@ -444,16 +448,20 @@ void PosixIBClient::tickString(TickerId tickerId, TickType tickType, const IBStr
     QString conId = conIdTickMap.key(tickerId, "");
     if(tickType == 48 && conId != "")
     {
+        qDebug() << "PosixIBClient: tickString()" << tickerId<<"-"<<QString::fromStdString(value);
+
         QString str = QString::fromStdString(value);
         QStringList strList = str.split(";");
 
         Trade trade;
         trade.contractId = conId;
-        trade.timeStamp = strList[2];
+        trade.timeStamp = QDateTime::fromMSecsSinceEpoch(strList[2].toLongLong()).toString("hh:mm:ss:zzz");
         trade.price = strList[0];
         trade.size = strList[1];
 
         emit AdapterTraded(trade);
+        //emit DummySignalTraded(conId);
+
     }
 
 }

@@ -32,10 +32,11 @@ signals:
 
 
 public slots:
-    void onInstrumentTicked(Tick tick);
-    void onUpdateContractInfo(ContractInfo contractInfo);
+    void onInstrumentTicked(const Tick &tick);
+    void onUpdateContractInfo(const ContractInfo &contractInfo);
     void onReqContractInfoErr(QString symbol);
 
+    void onContractRetrieved(const QMap<QString, ContractInfo> &mapContractInfo);
 
 };
 

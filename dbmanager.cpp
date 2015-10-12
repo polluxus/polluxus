@@ -202,7 +202,7 @@ void DbManager::onRetrieveContract()
         QDate todayDate = QDate::currentDate();
         QString expiry = query.value("expiry").toString();
 
-        QDate expiryDate = QDate::fromString(expiry, "yyyymmdd");
+        QDate expiryDate = QDate::fromString(expiry, "yyyyMMdd");
 
         if(expiryDate >= todayDate)
         {

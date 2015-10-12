@@ -65,12 +65,13 @@ signals:
     void OrderUpdated(QString msg);
     void OrderFilled(QString msg);
 
-    void AdapterTraded(Trade trade);
-    void AdapterDepthed(Depth depth);
-    void AdapterTicked(Tick tick);
+    void AdapterTraded(const Trade &trade);
+    void AdapterDepthed(const Depth &depth);
+    void AdapterTicked(const Tick &tick);
 
     void AdjustTimeDiff(qint64 timeDiffMS);
-
+    void DummySignalTraded(const QString &msg);
+    void DummySignalTicked(const QString &msg);
 public:
 
     bool connect(const char *host, int port, int clientId = 0);

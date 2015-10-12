@@ -55,6 +55,8 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
 
     PolluxusUtility::registerMetaType();
 
+    pTestSignalSlot = new TestSignalSlot;
+
     connectSignalSlot();
     QMetaObject::invokeMethod(pDbManager, "onRetrieveContract", Qt::QueuedConnection);
 
@@ -78,10 +80,10 @@ void PolluxusMain::connectSignalSlot()
 {
     //connect signal slot here
 
-    connect(btnNewOrderBookWidget, SIGNAL(clicked(bool)), this, SLOT(onNewOrderBookWidget()), Qt::DirectConnection);
+    connect(btnNewOrderBookWidget, SIGNAL(clicked(bool)), this, SLOT(onNewOrderBookWidget()));
     connect(btnTest, SIGNAL(clicked(bool)), this, SLOT(onTest()), Qt::DirectConnection);
-    connect(btnConnectData, SIGNAL(toggled(bool)), this, SLOT(onAdapterConnectData()), Qt::DirectConnection);
-    connect(btnConnectOrder, SIGNAL(toggled(bool)), this, SLOT(onAdapterConnectOrder()), Qt::DirectConnection);
+    connect(btnConnectData, SIGNAL(toggled(bool)), this, SLOT(onAdapterConnectData()));
+    connect(btnConnectOrder, SIGNAL(toggled(bool)), this, SLOT(onAdapterConnectOrder()));
 
     connect(pOrderIBAdapter, SIGNAL(AdapterConnected(int)), this, SLOT(onAdapterConnected(int)));
     connect(pOrderIBAdapter, SIGNAL(AdapterDisconnected(int)), this, SLOT(onAdapterDisconnected(int)));
@@ -89,18 +91,25 @@ void PolluxusMain::connectSignalSlot()
     connect(pDataIBAdapter, SIGNAL(AdapterConnected(int)), this, SLOT(onAdapterConnected(int)));
     connect(pDataIBAdapter, SIGNAL(AdapterDisconnected(int)), this, SLOT(onAdapterDisconnected(int)));
     connect(pDataIBAdapter, SIGNAL(AdjustTimeDiff(qint64)), this, SLOT(onAdjustTimeDiff(qint64)));
-    connect(pDataIBAdapter, SIGNAL(AdapterTraded(Trade)), pContractManager, SLOT(onAdapterTraded(Trade)));
-    connect(pDataIBAdapter, SIGNAL(AdapterDepthed(Depth)), pContractManager, SLOT(onAdapterDepthed(Depth)));
-    connect(pDataIBAdapter, SIGNAL(AdapterTicked(Tick)), pContractManager, SLOT(onAdapterTicked(Tick)));
+    connect(pDataIBAdapter, SIGNAL(AdapterTraded(const Trade&)), pContractManager, SLOT(onAdapterTraded(const Trade&)));
+    connect(pDataIBAdapter, SIGNAL(AdapterDepthed(const Depth&)), pContractManager, SLOT(onAdapterDepthed(const Depth&)));
+    connect(pDataIBAdapter, SIGNAL(AdapterTicked(const Tick&)), pContractManager, SLOT(onAdapterTicked(const Tick&)), Qt::DirectConnection);
+    //connect(pDataIBAdapter, SIGNAL(AdapterTraded(const Trade&)), pContractManager, SLOT(onAdapterTraded(const Trade&)), Qt::DirectConnection);
+    //connect(pDataIBAdapter, SIGNAL(AdapterDepthed(const Depth&)), pContractManager, SLOT(onAdapterDepthed(const Depth&)), Qt::DirectConnection);
+    //connect(pDataIBAdapter, SIGNAL(AdapterTicked(const Tick&)), pContractManager, SLOT(onAdapterTicked(const Tick&)), Qt::DirectConnection);
 
-    connect(pDbManager, SIGNAL(ContractRetrieved(QMap<QString,ContractInfo>)), pContractManager, SLOT(onContractRetrieved(QMap<QString,ContractInfo>)));
+    //connect(pDataIBAdapter, SIGNAL(DummySignalTraded(const QString&)), pTestSignalSlot, SLOT(onDummySignalTraded(const QString&)), Qt::QueuedConnection);
+    //connect(pDataIBAdapter, SIGNAL(DummySignalTicked(const QString&)), pTestSignalSlot, SLOT(onDummySignalTicked(const QString&)), Qt::QueuedConnection);
+
+    connect(pDbManager, SIGNAL(ContractRetrieved(const QMap<QString,ContractInfo>)), pContractManager, SLOT(onContractRetrieved(const QMap<QString,ContractInfo>)));
+    connect(pDbManager, SIGNAL(ContractRetrieved(const QMap<QString,ContractInfo>)), pContractManagerView->pModel, SLOT(onContractRetrieved(const QMap<QString,ContractInfo>)));
 
     connect(pContractManager, SIGNAL(ReqMktData(QString,QString)), pDataIBAdapter, SLOT(onReqMktData(QString,QString)));
     connect(pContractManager, SIGNAL(CancelMktData(QString)), pDataIBAdapter, SLOT(onCancelMktData(QString)));
     connect(pContractManager, SIGNAL(ReqMktDepth(QString,QString)), pDataIBAdapter, SLOT(onReqMktDepth(QString,QString)));
     connect(pContractManager, SIGNAL(CancelMktDepth(QString)), pDataIBAdapter, SLOT(onCancelMktDepth(QString)));
     connect(pContractManager, SIGNAL(InstrumentTicked(Tick)), pContractManagerView->pModel, SLOT(onInstrumentTicked(Tick)));
-    connect(pContractManager, SIGNAL(UpdateContractInfo(ContractInfo)), pContractManagerView->pModel, SLOT(onUpdateContractInfo(ContractInfo)));
+    connect(pContractManager, SIGNAL(UpdateContractInfo(const ContractInfo)), pContractManagerView->pModel, SLOT(onUpdateContractInfo(const ContractInfo)));
     connect(pContractManager, SIGNAL(ReqContractInfoErr(QString)), pContractManagerView->pModel, SLOT(onReqContractInfoErr(QString)));
 
 
