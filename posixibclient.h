@@ -57,13 +57,11 @@ public slots:
     void onReqAccountUpdates();
     void onTest();
 
+    void onNewOrder(const OrderItem &orderItem);
+
 signals:
     void AdapterConnected(int connType);
     void AdapterDisconnected(int connType);
-    void OrderSubmitted(QString msg);
-    void OrderCanceled(QString msg);
-    void OrderUpdated(QString msg);
-    void OrderFilled(QString msg);
 
     void AdapterTraded(const Trade &trade);
     void AdapterDepthed(const Depth &depth);
@@ -72,6 +70,8 @@ signals:
     void AdjustTimeDiff(qint64 timeDiffMS);
     void DummySignalTraded(const QString &msg);
     void DummySignalTicked(const QString &msg);
+
+    void OrderUpdated(const OrderUpdate &orderUpdate);
 public:
 
     bool connect(const char *host, int port, int clientId = 0);

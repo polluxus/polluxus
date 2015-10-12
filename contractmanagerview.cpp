@@ -41,7 +41,7 @@ ContractManagerView::ContractManagerView(QWidget *parent) : QWidget(parent)
     pTableView->setSelectionMode(QAbstractItemView::SingleSelection);
     pTableView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(pTableView, SIGNAL(customContextMenuRequested(QPoint)), SLOT(onCustomMenuRequested(QPoint)));
-
+    connect(pTableView, SIGNAL(clicked(QModelIndex)), this, SLOT(onClicked(QModelIndex)));
 
     pTableView->show();
 
@@ -188,6 +188,18 @@ void ContractManagerView::onAtnDeleteTriggered()
 //    pModel->removeRow(idxRow);
 //    emit pModel->layoutChanged();
 
+}
+
+void ContractManagerView::onClicked(QModelIndex index)
+{
+    if(index.row()>=0 && index.row()< pModel->rowCount()-1)
+    {
+        //pTableView->clearSelection();
+        //pTableView->selectRow(index.row());
+        QString symbol;
+        symbol = (pModel->mKeyList).at(index.row());
+        emit ContractClicked(symbol);
+    }
 }
 
 

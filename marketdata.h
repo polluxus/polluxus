@@ -63,22 +63,39 @@ struct OrderBook
     QStringList lstAskSz;
 };
 
-struct VanillaOrder
+struct OrderItem
 {
-    QString orderId;
+    long orderId;
+    QString pSymbol;
     QString contractId;
-    QString clientId;
     QString exchange;
-    QString symbol;
-    QString expiry;
-    QString currency;
     QString action;
-    QString totalQuantity;
+    int totalQuantity;
     QString orderType;
-    QString lmtPrice;
-    QString remainingQuantity;
+    double lmtPrice;
+    int remainingQuantity;
     QString createTimeStamp;
+    QString strategyId;
+    QString orderStatus;
+    QString parentOrderId;
+    double avgFillPrice;
+    double lastFillPrice;
+    int filled;
     QString memo;
+};
+struct OrderUpdate
+{
+    long orderId;
+    QString status;
+    int filled;
+    int remaining;
+    double avgFillPrice;
+    int permId;
+    int parentId;
+    double lastFillPrice;
+    int clientId;
+    QString whyHeld;
+
 };
 
 
@@ -90,27 +107,37 @@ struct PairOrder
     QString totalQuantity;
     QString orderType;
     QString priority;
-    VanillaOrder *pOrderLeg1;
-    VanillaOrder *pOrderLeg2;
+    OrderItem *pOrderLeg1;
+    OrderItem *pOrderLeg2;
     QString createTimeStamp;
     QString memo;
 };
 
 
-struct VanillaTrade
+struct TradeItem
 {
     QString orderId;
-    QString contractId;
-    QString clientId;
-    QString exchange;
     QString symbol;
-    QString expiry;
-    QString currency;
     QString action;
-    QString quantity;
-    QString price;
+    int fillQty;
+    double fillPrice;
+    double actualPrice;
     QString tradeTimeStamp;
-    QString memo;
+};
+
+struct TradeSummary
+{
+    QString symbol;
+    int netQty;
+    int boughtQty;
+    int soldQty;
+    double avgPriceBuy;
+    double avgPriceSell;
+    double avgActualPriceBuy;
+    double avgActualPriceSell;
+    double realizedPnL;
+    double unRealizedPnL;
+    double mtmPnl;
 };
 
 Q_DECLARE_METATYPE(Tick)
@@ -118,9 +145,10 @@ Q_DECLARE_METATYPE(Trade)
 Q_DECLARE_METATYPE(Depth)
 Q_DECLARE_METATYPE(ContractInfo)
 Q_DECLARE_METATYPE(OrderBook)
-Q_DECLARE_METATYPE(VanillaOrder)
+Q_DECLARE_METATYPE(OrderItem)
+Q_DECLARE_METATYPE(OrderUpdate)
 Q_DECLARE_METATYPE(PairOrder)
-Q_DECLARE_METATYPE(VanillaTrade)
-
+Q_DECLARE_METATYPE(TradeItem)
+Q_DECLARE_METATYPE(TradeSummary)
 #endif // MARKETDATA
 

@@ -35,8 +35,15 @@ void PolluxusUtility::registerMetaType()
     qRegisterMetaType<QMap<QString,ContractInfo>>("QMap<QString,ContractInfo>");
     qRegisterMetaType<QMap<QString,ContractInfo>>("QMap<QString,ContractInfo>&");
 
+    qRegisterMetaType<OrderItem>("OrderItem");
+    qRegisterMetaType<OrderItem>("OrderItem&");
+    qRegisterMetaType<OrderUpdate>("OrderUpdate");
+    qRegisterMetaType<OrderUpdate>("OrderUpdate&");
     qRegisterMetaType<PairOrder>("PairOrder");
     qRegisterMetaType<PairOrder>("PairOrder&");
-    qRegisterMetaType<VanillaTrade>("VanillaTrade");
-    qRegisterMetaType<VanillaTrade>("VanillaTrade&");
+    qRegisterMetaType<TradeItem>("TradeItem");
+    qRegisterMetaType<TradeItem>("TradeItem&");
+    qRegisterMetaType<TradeSummary>("TradeSummary");
+    qRegisterMetaType<TradeSummary>("TradeSummary&");
+
 }

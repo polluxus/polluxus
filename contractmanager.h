@@ -21,6 +21,9 @@ public:
 
     QThread *pThread;
 
+    //QReadWriteLock lock;
+    ContractInfo getContractInfoBySymbol(QString symbol);
+
 signals:
     void ReqMktData(QString contractId, QString exchange);
     void ReqMktDepth(QString contractId, QString exchange);
@@ -40,8 +43,6 @@ public slots:
     void onAdapterTraded(const Trade &trade);
     void onAdapterDepthed(const Depth &depth);
     void onAdapterTicked(const Tick &tick);
-
-
 
     void onSubscribeMktData(QString symbol);
     void onSubscribeMktDepth(QString symbol);

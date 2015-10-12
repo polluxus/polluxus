@@ -10,6 +10,9 @@
 #include "marketdata.h"
 #include "contractmanager.h"
 #include "contractmanagerview.h"
+#include "ordermanager.h"
+#include "ordermanagerview.h"
+
 #include "orderbookwidget.h"
 #include "dbmanager.h"
 #include "polluxusutility.h"
@@ -47,15 +50,23 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     pDbManager = new DbManager(dbPath);
 
     pContractManager = new ContractManager();
-
     pContractManagerView = new ContractManagerView(this);
     pContractManagerView->show();
+
+    pOrderManager = new OrderManager(pContractManager);
+    pOrderManagerView = new OrderManagerView(this);
+    pOrderManagerView->show();
+
+    pTradePad = new TradePadWidget(this);
+    pTradePad->show();
 
     loadWorkSpace();
 
     PolluxusUtility::registerMetaType();
 
     pTestSignalSlot = new TestSignalSlot;
+
+
 
     connectSignalSlot();
     QMetaObject::invokeMethod(pDbManager, "onRetrieveContract", Qt::QueuedConnection);
@@ -101,6 +112,8 @@ void PolluxusMain::connectSignalSlot()
     //connect(pDataIBAdapter, SIGNAL(DummySignalTraded(const QString&)), pTestSignalSlot, SLOT(onDummySignalTraded(const QString&)), Qt::QueuedConnection);
     //connect(pDataIBAdapter, SIGNAL(DummySignalTicked(const QString&)), pTestSignalSlot, SLOT(onDummySignalTicked(const QString&)), Qt::QueuedConnection);
 
+    connect(pOrderIBAdapter, SIGNAL(OrderUpdated(const OrderUpdate&)), pOrderManager, SLOT(onOrderUpdated(const OrderUpdate&)));
+
     connect(pDbManager, SIGNAL(ContractRetrieved(const QMap<QString,ContractInfo>)), pContractManager, SLOT(onContractRetrieved(const QMap<QString,ContractInfo>)));
     connect(pDbManager, SIGNAL(ContractRetrieved(const QMap<QString,ContractInfo>)), pContractManagerView->pModel, SLOT(onContractRetrieved(const QMap<QString,ContractInfo>)));
 
@@ -112,12 +125,16 @@ void PolluxusMain::connectSignalSlot()
     connect(pContractManager, SIGNAL(UpdateContractInfo(const ContractInfo)), pContractManagerView->pModel, SLOT(onUpdateContractInfo(const ContractInfo)));
     connect(pContractManager, SIGNAL(ReqContractInfoErr(QString)), pContractManagerView->pModel, SLOT(onReqContractInfoErr(QString)));
 
+    connect(pContractManagerView, SIGNAL(ContractClicked(QString)), pTradePad, SLOT(onContractClicked(QString)));
 
     connect(pContractManagerView->pModel, SIGNAL(SubscribeMktData(QString)),   pContractManager, SLOT(onSubscribeMktData(QString)));
     connect(pContractManagerView->pModel, SIGNAL(SubscribeMktDepth(QString)), pContractManager, SLOT(onSubscribeMktDepth(QString)));
     connect(pContractManagerView->pModel, SIGNAL(UnsubscribeMktData(QString)),   pContractManager, SLOT(onUnsubscribeMktData(QString)));
     connect(pContractManagerView->pModel, SIGNAL(UnsubscribeMktDepth(QString)),  pContractManager, SLOT(onUnsubscribeMktDepth(QString)));
     connect(pContractManagerView->pModel, SIGNAL(ReqContractInfo(QString)),   pContractManager, SLOT(onReqContractInfo(QString)));
+
+    connect(pOrderManager, SIGNAL(NewOrder(const OrderItem&)), pOrderIBAdapter, SLOT(onNewOrder(const OrderItem&)));
+    connect(pOrderManager, SIGNAL(OrderItemUpdated(const OrderItem&)), pOrderManagerView->pModel, SLOT(onOrderItemUpdated(const OrderItem&)));
 
 }
 

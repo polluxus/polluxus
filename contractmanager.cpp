@@ -19,6 +19,11 @@ ContractManager::~ContractManager()
     delete pThread;
 }
 
+ContractInfo ContractManager::getContractInfoBySymbol(QString symbol)
+{
+    return mapContractInfo[symbol];
+}
+
 void ContractManager::onContractRetrieved(const QMap<QString, ContractInfo> &mapContractInfo)
 {
     qDebug() << "ContractManager::onContractRetrieved():";

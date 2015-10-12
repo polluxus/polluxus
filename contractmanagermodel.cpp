@@ -180,6 +180,16 @@ void ContractManagerModel::onInstrumentTicked(const Tick &tick)
         mGridData[symbol][offset + tickType] = tick.value;
         mGridData[symbol][13] = tick.timeStamp;
 
+        if(tickType == 4)
+        {
+
+            if(mGridData[symbol][11] != "")
+            {
+                double closePx = mGridData[symbol][11].toDouble();
+                mGridData[symbol][12] = QString::number((tick.value.toDouble()/closePx - 1)*100, 'g', 2);
+            }
+        }
+
         int row = mKeyList.indexOf(symbol);
         QModelIndex indexLeft = createIndex(row,0);
         QModelIndex indexRight = createIndex(row,columnCount()-1);

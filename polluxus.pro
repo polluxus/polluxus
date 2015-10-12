@@ -33,7 +33,10 @@ SOURCES += main.cpp\
     ordermanager.cpp \
     polluxusutility.cpp \
     instrument.cpp \
-    testsignalslot.cpp
+    testsignalslot.cpp \
+    ordermanagerview.cpp \
+    ordermanagermodel.cpp \
+    tradepadwidget.cpp
 
 HEADERS  += polluxusmain.h \
     tws/Shared/CommissionReport.h \
@@ -69,7 +72,10 @@ HEADERS  += polluxusmain.h \
     ordermanager.h \
     polluxusutility.h \
     instrument.h \
-    testsignalslot.h
+    testsignalslot.h \
+    ordermanagerview.h \
+    ordermanagermodel.h \
+    tradepadwidget.h
 
 
 INCLUDEPATH += tws/src \

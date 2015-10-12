@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "testsignalslot.h"
+#include "tradepadwidget.h"
 
 class PosixIBClient;
 class MessageProcessor;
@@ -16,9 +17,12 @@ class PolluxusLogger;
 class DigitalClock;
 class ContractManager;
 class ContractManagerView;
+class OrderManager;
+class OrderManagerView;
 class QSettings;
 class DbManager;
 class QHBoxLayout;
+
 
 
 class PolluxusMain : public QWidget
@@ -74,6 +78,9 @@ private:
     DigitalClock *pClock;
     ContractManagerView *pContractManagerView;
     ContractManager *pContractManager;
+    OrderManagerView *pOrderManagerView;
+    OrderManager *pOrderManager;
+    TradePadWidget *pTradePad;
     DbManager *pDbManager;
     QString dbPath;
 

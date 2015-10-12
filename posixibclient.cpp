@@ -9,6 +9,8 @@
 #include "Contract.h"
 #include "Order.h"
 #include "polluxusutility.h"
+#include "Execution.h"
+#include "CommissionReport.h"
 
 const int PING_DEADLINE = 2; // seconds
 const int SLEEP_BETWEEN_PINGS = 30; // seconds
@@ -345,6 +347,24 @@ void PosixIBClient::placeOrder()
 
 }
 
+void PosixIBClient::onNewOrder(const OrderItem &orderItem)
+{
+    Contract contract;
+    Order order;
+
+    contract.conId = orderItem.contractId.toLong();
+    contract.exchange = orderItem.exchange.toStdString();
+
+    order.action = orderItem.action.toStdString();
+    order.totalQuantity = orderItem.totalQuantity;
+    order.orderType = orderItem.orderType.toStdString();
+    order.lmtPrice = orderItem.lmtPrice;
+    order.tif = "DAY";
+
+    qDebug() << "PosixIBClient::onNewOrder():" << orderItem.orderId;
+    pClient->placeOrder(orderItem.orderId, contract, order);
+}
+
 void PosixIBClient::cancelOrder()
 {
 
@@ -378,7 +398,20 @@ void PosixIBClient::orderStatus( OrderId orderId, const IBString &status, int fi
 
     qDebug() << msg;
 
-    emit OrderUpdated(msg);
+    OrderUpdate orderUpdate;
+    orderUpdate.orderId = orderId;
+    orderUpdate.status = QString::fromStdString(status);
+    orderUpdate.filled = filled;
+    orderUpdate.remaining = remaining;
+    orderUpdate.avgFillPrice = avgFillPrice;
+    orderUpdate.permId = permId;
+    orderUpdate.parentId = parentId;
+    orderUpdate.lastFillPrice = lastFillPrice;
+    orderUpdate.clientId = clientId;
+    orderUpdate.whyHeld = QString::fromStdString(whyHeld);
+
+
+    emit OrderUpdated(orderUpdate);
 }
 
 void PosixIBClient::nextValidId( OrderId orderId){}
@@ -511,7 +544,23 @@ void PosixIBClient::contractDetails(int reqId, const ContractDetails& contractDe
 
 void PosixIBClient::bondContractDetails( int reqId, const ContractDetails& contractDetails) {}
 void PosixIBClient::contractDetailsEnd( int reqId) {}
-void PosixIBClient::execDetails( int reqId, const Contract& contract, const Execution& execution) {}
+void PosixIBClient::execDetails( int reqId, const Contract& contract, const Execution& execution)
+{
+
+    qDebug() <<"PosixIBClient::execDetails():"
+             <<reqId<<"-"
+             <<QString::fromStdString(contract.symbol)<<"-"
+             <<QString::fromStdString(execution.execId)<<"-"
+             <<QString::fromStdString(execution.time) << "-"
+             <<QString::fromStdString(execution.side)<<"-"
+             <<execution.shares <<"-"
+             <<execution.price <<"-"
+             <<execution.orderId<<"-"
+             <<execution.clientId;
+
+
+}
+
 void PosixIBClient::execDetailsEnd( int reqId) {}
 
 void PosixIBClient::updateMktDepth(TickerId id, int position, int operation, int side,
@@ -574,7 +623,14 @@ void PosixIBClient::fundamentalData(TickerId reqId, const IBString& data) {}
 void PosixIBClient::deltaNeutralValidation(int reqId, const UnderComp& underComp) {}
 void PosixIBClient::tickSnapshotEnd(int reqId) {}
 void PosixIBClient::marketDataType(TickerId reqId, int marketDataType) {}
-void PosixIBClient::commissionReport( const CommissionReport& commissionReport) {}
+void PosixIBClient::commissionReport( const CommissionReport& commissionReport)
+{
+    qDebug() << "PosixIBClient::commissionReport():"
+             << QString::fromStdString(commissionReport.execId)
+             << QString::number(commissionReport.commission)
+             << QString::number(commissionReport.realizedPNL);
+
+}
 void PosixIBClient::position( const IBString& account, const Contract& contract, int position, double avgCost) {}
 void PosixIBClient::positionEnd() {}
 void PosixIBClient::accountSummary( int reqId, const IBString& account, const IBString& tag, const IBString& value, const IBString& curency) {}

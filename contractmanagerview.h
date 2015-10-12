@@ -42,13 +42,14 @@ public:
     QSettings *wsSettings;
 
 signals:
-
+    void ContractClicked(QString symbol);
 
 public slots:
 
     void onCustomMenuRequested(QPoint pos);
     void onAtnSubscribeTriggered();
     void onAtnDeleteTriggered();
+    void onClicked(QModelIndex index);
 
 };
 
