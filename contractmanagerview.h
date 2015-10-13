@@ -42,7 +42,7 @@ public:
     QSettings *wsSettings;
 
 signals:
-    void ContractClicked(QString symbol);
+    void ContractClicked(QString symbol, QString bidSz, QString bid, QString ask, QString askSz);
 
 public slots:
 

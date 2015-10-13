@@ -17,7 +17,7 @@ OrderManager::~OrderManager()
     delete pThread;
 }
 
-void OrderManager::onNewOrder(QString symbol, QString action, QString orderType, double price, int qty, QString strategyId)
+void OrderManager::onOrderSubmit(QString symbol, QString action, QString orderType, double price, int qty, QString strategyId)
 {
     ContractInfo contractInfo = pContractManager->getContractInfoBySymbol(symbol);
     OrderItem orderItem;
@@ -39,7 +39,7 @@ void OrderManager::onNewOrder(QString symbol, QString action, QString orderType,
     {
         mapOrderItem[orderItem.orderId] = orderItem;
         emit NewOrder(orderItem);
-        emit OrderItemUpdated(orderItem);
+
     }
     else
     {

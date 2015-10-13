@@ -39,26 +39,26 @@ void ContractManager::onContractRetrieved(const QMap<QString, ContractInfo> &map
 void ContractManager::onAdapterTraded(const Trade &trade)
 {
     //qDebug() << "ContractManager: onAdapterTraded() in thread: " << QThread::currentThreadId();
-    qDebug() <<"ContractManager::onAdapterTraded():"
-             <<trade.contractId<<"-"
-             <<trade.timeStamp<<"-"
-             <<trade.price<<"-"
-             <<trade.size;
+//    qDebug() <<"ContractManager::onAdapterTraded():"
+//             <<trade.contractId<<"-"
+//             <<trade.timeStamp<<"-"
+//             <<trade.price<<"-"
+//             <<trade.size;
 }
 
 void ContractManager::onAdapterDepthed(const Depth &depth)
 {
-    qDebug() <<"ContractManager::onAdapterDepthed():"
-             <<depth.contractId<<"-"
-             <<depth.timeStamp;
+//    qDebug() <<"ContractManager::onAdapterDepthed():"
+//             <<depth.contractId<<"-"
+//             <<depth.timeStamp;
 }
 
 void ContractManager::onAdapterTicked(const Tick &tick)
 {
-    qDebug() << "ContractManager: onAdapterTicked() in thread: " << QThread::currentThreadId();
-    qDebug() <<"ContractManager::onAdapterTicked():"
-             <<tick.contractId<<"-"
-             <<tick.timeStamp <<"-";
+//    qDebug() << "ContractManager: onAdapterTicked() in thread: " << QThread::currentThreadId();
+//    qDebug() <<"ContractManager::onAdapterTicked():"
+//             <<tick.contractId<<"-"
+//             <<tick.timeStamp <<"-";
 
 
     QString contractId = tick.contractId;

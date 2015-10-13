@@ -47,7 +47,7 @@ ContractManagerView::ContractManagerView(QWidget *parent) : QWidget(parent)
 
     createContextMenu();
 
-    setMinimumSize(320, 200);
+    setMinimumSize(200, 200);
     loadWorkSpace();
 }
 
@@ -196,9 +196,23 @@ void ContractManagerView::onClicked(QModelIndex index)
     {
         //pTableView->clearSelection();
         //pTableView->selectRow(index.row());
+        int nCol = pModel->columnCount();
         QString symbol;
         symbol = (pModel->mKeyList).at(index.row());
-        emit ContractClicked(symbol);
+        if(pModel->mGridData[symbol][nCol] == "ON")
+        {
+            QString bidSz = "";
+            QString bid = "";
+            QString ask = "";
+            QString askSz = "";
+
+            bidSz = pModel->mGridData[symbol][2];
+            bid = pModel->mGridData[symbol][3];
+            ask = pModel->mGridData[symbol][4];
+            askSz = pModel->mGridData[symbol][5];
+
+            emit ContractClicked(symbol, bidSz, bid, ask, askSz);
+        }
     }
 }
 

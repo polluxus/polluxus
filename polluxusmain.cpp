@@ -42,7 +42,7 @@ PolluxusMain::PolluxusMain(QWidget *parent) :
     pDataIBAdapter = new PosixIBClient();
     pDataMsgProcessor = new MessageProcessor(pDataIBAdapter);
     pOrderIBAdapter = new PosixIBClient();
-    pOrderMsgProcessor = new MessageProcessor(pDataIBAdapter);
+    pOrderMsgProcessor = new MessageProcessor(pOrderIBAdapter);
 
     pLogger = new PolluxusLogger(this);
     pLogger->show();
@@ -124,8 +124,9 @@ void PolluxusMain::connectSignalSlot()
     connect(pContractManager, SIGNAL(InstrumentTicked(Tick)), pContractManagerView->pModel, SLOT(onInstrumentTicked(Tick)));
     connect(pContractManager, SIGNAL(UpdateContractInfo(const ContractInfo)), pContractManagerView->pModel, SLOT(onUpdateContractInfo(const ContractInfo)));
     connect(pContractManager, SIGNAL(ReqContractInfoErr(QString)), pContractManagerView->pModel, SLOT(onReqContractInfoErr(QString)));
+    connect(pContractManager, SIGNAL(InstrumentTicked(Tick)), pTradePad, SLOT(onInstrumentTicked(Tick)));
 
-    connect(pContractManagerView, SIGNAL(ContractClicked(QString)), pTradePad, SLOT(onContractClicked(QString)));
+    connect(pContractManagerView, SIGNAL(ContractClicked(QString,QString,QString,QString,QString)), pTradePad, SLOT(onContractClicked(QString,QString,QString,QString,QString)));
 
     connect(pContractManagerView->pModel, SIGNAL(SubscribeMktData(QString)),   pContractManager, SLOT(onSubscribeMktData(QString)));
     connect(pContractManagerView->pModel, SIGNAL(SubscribeMktDepth(QString)), pContractManager, SLOT(onSubscribeMktDepth(QString)));
@@ -136,6 +137,7 @@ void PolluxusMain::connectSignalSlot()
     connect(pOrderManager, SIGNAL(NewOrder(const OrderItem&)), pOrderIBAdapter, SLOT(onNewOrder(const OrderItem&)));
     connect(pOrderManager, SIGNAL(OrderItemUpdated(const OrderItem&)), pOrderManagerView->pModel, SLOT(onOrderItemUpdated(const OrderItem&)));
 
+    connect(pTradePad, SIGNAL(OrderSubmit(QString,QString,QString,double,int,QString)), pOrderManager, SLOT(onOrderSubmit(QString,QString,QString,double,int,QString)));
 }
 
 void PolluxusMain::mousePressEvent(QMouseEvent* event)
@@ -224,11 +226,11 @@ void PolluxusMain::createToolBar()
 
     btnNewOrderBookWidget = new QPushButton("New OrderBook");
     btnTest = new QPushButton(tr("test"));
-    btnConnectData = new QPushButton(tr("Connect Data"));
+    btnConnectData = new QPushButton(tr("DataAPI"));
     btnConnectData->setCheckable(true);
     btnConnectData->setIcon(QIcon(":/images/bullet-red.png"));
 
-    btnConnectOrder = new QPushButton(tr("Connect Order"));
+    btnConnectOrder = new QPushButton(tr("OrderAPI"));
     btnConnectOrder->setCheckable(true);
     btnConnectOrder->setIcon(QIcon(":/images/bullet-red.png"));
 
@@ -327,7 +329,6 @@ void PolluxusMain::onAdapterConnectData()
                                   Q_ARG(int, clientId),
                                   Q_ARG(int, 0));               // 0 - Data API
 
-        btnConnectData->setText(tr("Connecting..."));
         btnConnectData->setEnabled(false);
         btnConnectData->setIcon(QIcon(":/images/wait.png"));
 
@@ -342,7 +343,6 @@ void PolluxusMain::onAdapterConnectData()
 
         QMetaObject::invokeMethod(pDataIBAdapter, "onDisconnect", Qt::QueuedConnection );
 
-        btnConnectData->setText(tr("Disconnecting"));
         btnConnectData->setEnabled(false);
         btnConnectData->setIcon(QIcon(":/images/bullet-grey.png"));
 
@@ -362,7 +362,6 @@ void PolluxusMain::onAdapterConnectOrder()
                                   Q_ARG(int, clientId + 1),
                                   Q_ARG(int , 1));                                  //1 - Order API
 
-        btnConnectOrder->setText(tr("Connecting..."));
         btnConnectOrder->setEnabled(false);
         btnConnectOrder->setIcon(QIcon(":/images/wait.png"));
 
@@ -376,7 +375,6 @@ void PolluxusMain::onAdapterConnectOrder()
         qDebug() << "MainWindow:Hi I am disconnecting IB Order API.------";
         QMetaObject::invokeMethod(pOrderIBAdapter, "onDisconnect", Qt::QueuedConnection );
 
-        btnConnectOrder->setText(tr("Disconnecting"));
         btnConnectOrder->setEnabled(false);
         btnConnectOrder->setIcon(QIcon(":/images/bullet-grey.png"));
 
@@ -392,7 +390,6 @@ void PolluxusMain::onAdapterConnected(int connType)
 
     if(connType == 0)   //Data API
     {
-        btnConnectData->setText(tr("Disconnect"));
         btnConnectData->setEnabled(true);
         btnConnectData->setIcon(QIcon(":/images/bullet-green.png"));
         lbLight->setPixmap(QPixmap(":/images/bullet-green.png"));
@@ -400,7 +397,6 @@ void PolluxusMain::onAdapterConnected(int connType)
     }
     else
     {
-        btnConnectOrder->setText(tr("Disconnect"));
         btnConnectOrder->setEnabled(true);
         btnConnectOrder->setIcon(QIcon(":/images/bullet-green.png"));
         lbLight->setPixmap(QPixmap(":/images/bullet-green.png"));
@@ -416,14 +412,12 @@ void PolluxusMain::onAdapterDisconnected(int connType)
 
     if(connType == 0)   //Data API
     {
-    btnConnectData->setText(tr("Connect"));
     btnConnectData->setEnabled(true);
     btnConnectData->setIcon(QIcon(":/images/bullet-red.png"));
     lbLight->setPixmap(QPixmap(":/images/bullet-red.png"));
     }
     else
     {
-        btnConnectOrder->setText(tr("Connect"));
         btnConnectOrder->setEnabled(true);
         btnConnectOrder->setIcon(QIcon(":/images/bullet-red.png"));
         lbLight->setPixmap(QPixmap(":/images/bullet-red.png"));

@@ -377,14 +377,14 @@ void PosixIBClient::orderStatus( OrderId orderId, const IBString &status, int fi
 	   double lastFillPrice, int clientId, const IBString& whyHeld)
 
 {
-    QString msg("OrderStatus | orderId:");
+    QString msg("PosixIBClient::orderStatus():orderId:");
     msg.append(QString::number(orderId));
     msg.append(", Status:");
     msg.append(QString::fromStdString(status));
     msg.append(", remaining:");
-    msg.append(QString::number(filled));
-    msg.append(", filled:");
     msg.append(QString::number(remaining));
+    msg.append(", filled:");
+    msg.append(QString::number(filled));
     msg.append(", avgPx:");
     msg.append(QString::number(avgFillPrice));
 
@@ -435,8 +435,8 @@ void PosixIBClient::error(const int id, const int errorCode, const IBString erro
 
 void PosixIBClient::tickPrice( TickerId tickerId, TickType field, double price, int canAutoExecute)
 {
-    qDebug() << "PosixIBClient: tickString() in thread: " << QThread::currentThreadId();
-    qDebug() << "tickPrice():" << tickerId <<", TickType:" << field << ", price:" << price;
+    //qDebug() << "PosixIBClient: tickString() in thread: " << QThread::currentThreadId();
+    //qDebug() << "tickPrice():" << tickerId <<", TickType:" << field << ", price:" << price;
 
     QString contractId = conIdTickMap.key(tickerId, "");
     if(contractId != "")
@@ -454,7 +454,7 @@ void PosixIBClient::tickPrice( TickerId tickerId, TickType field, double price, 
 }
 void PosixIBClient::tickSize( TickerId tickerId, TickType field, int size)
 {
-    qDebug() << "tickSize():" << tickerId <<", TickType:" << field << ", size:" << size;
+    //qDebug() << "tickSize():" << tickerId <<", TickType:" << field << ", size:" << size;
 
     QString contractId = conIdTickMap.key(tickerId, "");
     if(contractId != "")
@@ -481,7 +481,7 @@ void PosixIBClient::tickString(TickerId tickerId, TickType tickType, const IBStr
     QString conId = conIdTickMap.key(tickerId, "");
     if(tickType == 48 && conId != "")
     {
-        qDebug() << "PosixIBClient: tickString()" << tickerId<<"-"<<QString::fromStdString(value);
+        //qDebug() << "PosixIBClient: tickString()" << tickerId<<"-"<<QString::fromStdString(value);
 
         QString str = QString::fromStdString(value);
         QStringList strList = str.split(";");

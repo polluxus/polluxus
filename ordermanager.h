@@ -29,8 +29,10 @@ signals:
 
     void OrderItemUpdated(const OrderItem &orderItem);
 
+
+
 public slots:
-    void onNewOrder(QString symbol, QString action, QString orderType, double price, int qty, QString strategyId);
+    void onOrderSubmit(QString symbol, QString action, QString orderType, double price, int qty, QString strategyId);
     void onModifyOrder(OrderItem orderItem);
     void onCancelOrder(OrderItem orderItem);
 

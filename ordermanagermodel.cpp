@@ -74,15 +74,17 @@ void OrderManagerModel::onOrderItemUpdated(const OrderItem &orderItem)
                << orderItem.orderStatus
                << orderItem.strategyId
                << orderItem.createTimeStamp;
-    mGridData[orderId] = tmpStrList;
+
 
     if(!mGridData.contains(orderId))
     {
         mKeyList.append(orderId);
+        mGridData[orderId] = tmpStrList;
         layoutChanged();
     }
     else
     {
+        mGridData[orderId] = tmpStrList;
         int row = mKeyList.indexOf(orderId);
         QModelIndex indexLeft = createIndex(row,0);
         QModelIndex indexRight = createIndex(row,columnCount()-1);
